@@ -50,8 +50,8 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         default:
             break;
     }
-    // Lower COM slightly for stability while keeping visual/physical alignment.
-    const float comOffset = -0.6f * halfExtent.GetY();
+    // Match Jolt demo: lower COM for stability.
+    const float comOffset = -0.9f * halfExtent.GetY();
     auto shape = OffsetCenterOfMassShapeSettings(Vec3(0, comOffset, 0), new BoxShape(halfExtent)).Create().Get();
 
     BodyCreationSettings bodySettings(
@@ -235,6 +235,8 @@ float PhysicsVehicle::spawnHeight(VehicleType type) {
         default:
             break;
     }
-    const float comOffset = -0.6f * halfY;
-    return wheelRadius - comOffset;
+    const float comOffset = -0.9f * halfY;
+    const float suspensionRest = 0.4f;
+    return wheelRadius - comOffset + suspensionRest;
 }
+

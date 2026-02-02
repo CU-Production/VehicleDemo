@@ -17,7 +17,7 @@ std::shared_ptr<Mesh> createGround() {
     planeMaterial->side = Side::Double;
 
     auto plane = Mesh::create(planeGeometry, planeMaterial);
-    plane->position.y = -1;
+    plane->position.y = 0;
     plane->rotateX(math::degToRad(90));
     plane->receiveShadow = true;
     return plane;
@@ -63,10 +63,10 @@ TestScene createTestScene(Canvas& canvas) {
     testScene.physics = std::make_unique<PhysicsWorld>();
 
     JPH::BodyInterface& bodyInterface = testScene.physics->bodyInterface();
-    auto groundShape = new JPH::BoxShape(JPH::Vec3(30.f, 1.f, 30.f));
+    auto groundShape = new JPH::BoxShape(JPH::Vec3(30.f, 0.5f, 30.f));
     JPH::BodyCreationSettings groundSettings(
         groundShape,
-        JPH::RVec3(0, -1, 0),
+        JPH::RVec3(0, -0.5f, 0),
         JPH::Quat::sIdentity(),
         JPH::EMotionType::Static,
         PhysicsLayers::Static);
@@ -88,6 +88,11 @@ TestScene createTestScene(Canvas& canvas) {
     testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[0], VehicleType::Kart, JPH::RVec3(-6, PhysicsVehicle::spawnHeight(VehicleType::Kart), 0)));
     testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[1], VehicleType::Sedan, JPH::RVec3(0, PhysicsVehicle::spawnHeight(VehicleType::Sedan), 0)));
     testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[2], VehicleType::Truck, JPH::RVec3(7, PhysicsVehicle::spawnHeight(VehicleType::Truck), 0)));
+
+#ifdef JPH_DEBUG_RENDERER
+    testScene.debugRenderer = std::make_unique<JoltDebugRenderer>();
+    testScene.scene->add(testScene.debugRenderer->group());
+#endif
 
     return testScene;
 }
@@ -114,6 +119,24 @@ void TestScene::update(float dt) {
     for (auto& vehicle : physicsVehicles) {
         vehicle->syncVisual();
     }
+
+#ifdef JPH_DEBUG_RENDERER
+    if (showDebugDraw && debugRenderer) {
+        debugRenderer->BeginFrame();
+        debugRenderer->SetCameraPosition(camera->position);
+
+        JPH::BodyManager::DrawSettings settings;
+        settings.mDrawShape = true;
+        settings.mDrawShapeColor = JPH::BodyManager::EShapeColor::InstanceColor;
+        settings.mDrawCenterOfMassTransform = true;
+        settings.mDrawBoundingBox = false;
+        settings.mDrawWorldTransform = false;
+        settings.mDrawVelocity = false;
+
+        physics->system().DrawBodies(settings, debugRenderer.get());
+        physics->system().DrawConstraints(debugRenderer.get());
+    }
+#endif
 }
 
 void TestScene::drawUi() {
@@ -135,6 +158,11 @@ void TestScene::drawUi() {
         ImGui::SliderFloat("Brake force", &settings.brakeForce, 200.f, 4000.f);
         ImGui::Text("Speed: %.2f m/s", vehicle->speed());
     }
+
+#ifdef JPH_DEBUG_RENDERER
+    ImGui::Separator();
+    ImGui::Checkbox("Jolt Debug Draw", &showDebugDraw);
+#endif
     ImGui::End();
 }
 

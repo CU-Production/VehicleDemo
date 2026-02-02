@@ -4,6 +4,7 @@
 #include "PhysicsVehicle.h"
 #include "VehicleController.h"
 #include "VehicleFactory.h"
+#include "JoltDebugRenderer.h"
 #include <memory>
 #include <vector>
 
@@ -16,6 +17,10 @@ struct TestScene {
     std::vector<std::unique_ptr<PhysicsVehicle>> physicsVehicles;
     VehicleController controller;
     int activeVehicle = 0;
+#ifdef JPH_DEBUG_RENDERER
+    std::unique_ptr<JoltDebugRenderer> debugRenderer;
+    bool showDebugDraw = false;
+#endif
 
     void update(float dt);
     void drawUi();

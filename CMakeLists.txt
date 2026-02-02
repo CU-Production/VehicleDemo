@@ -30,6 +30,7 @@ set(CPP_EXCEPTIONS_ENABLED OFF)
 set(CPP_RTTI_ENABLED OFF)
 set(OBJECT_LAYER_BITS 16)
 set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF)
+set(JPH_DEBUG_RENDERER ON)
 
 set(USE_SSE4_1 ON)
 set(USE_SSE4_2 ON)
@@ -77,6 +78,7 @@ endif ()
 
 add_executable(VehicleDemo
     main.cpp
+    JoltDebugRenderer.cpp
     PhysicsWorld.cpp
     PhysicsVehicle.cpp
     VehicleController.cpp
@@ -84,3 +86,4 @@ add_executable(VehicleDemo
     TestScene.cpp
 )
 target_link_libraries(VehicleDemo PRIVATE threepp::threepp Jolt imgui)
+target_compile_definitions(VehicleDemo PRIVATE JPH_DEBUG_RENDERER)
