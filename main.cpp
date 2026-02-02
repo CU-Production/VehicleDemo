@@ -23,8 +23,7 @@ int main() {
         float dt = clock.getDelta();
         testScene.update(dt);
 
-        ui.render();
-
         renderer.render(*testScene.scene, *testScene.camera);
+        ui.render();
     });
 }

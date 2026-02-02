@@ -101,7 +101,7 @@ void TestScene::update(float dt) {
         float speed = physicsVehicles[i]->speed();
         float wheelSpin = speed * dt;
         for (const auto& wheel : vehicles[i].wheels) {
-            wheel->rotation.x -= wheelSpin;
+            wheel->rotation.z -= wheelSpin;
         }
     }
 }
