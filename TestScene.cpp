@@ -4,6 +4,7 @@
 #include <Jolt/Physics/Body/BodyInterface.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <imgui.h>
+#include "threepp/cameras/OrthographicCamera.hpp"
 
 using namespace threepp;
 
@@ -18,6 +19,7 @@ std::shared_ptr<Mesh> createGround() {
     auto plane = Mesh::create(planeGeometry, planeMaterial);
     plane->position.y = -1;
     plane->rotateX(math::degToRad(90));
+    plane->receiveShadow = true;
     return plane;
 }
 
@@ -27,6 +29,17 @@ void addLights(const std::shared_ptr<Scene>& scene) {
 
     auto dir = DirectionalLight::create(threepp::Color::white, 0.8f);
     dir->position.set(5, 8, 5);
+    dir->castShadow = true;
+    dir->shadow->mapSize.set(2048, 2048);
+    dir->shadow->camera->nearPlane = 1.f;
+    dir->shadow->camera->farPlane = 50.f;
+    if (auto* shadowCam = dynamic_cast<OrthographicCamera*>(dir->shadow->camera.get())) {
+        shadowCam->left = -20.f;
+        shadowCam->right = 20.f;
+        shadowCam->top = 20.f;
+        shadowCam->bottom = -20.f;
+        shadowCam->updateProjectionMatrix();
+    }
     scene->add(dir);
 }
 

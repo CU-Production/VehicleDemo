@@ -11,6 +11,8 @@ std::shared_ptr<Mesh> createBox(const Vector3& size, const Vector3& pos, const C
 
     auto box = Mesh::create(geometry, material);
     box->position.copy(pos);
+    box->castShadow = true;
+    box->receiveShadow = true;
     return box;
 }
 
@@ -20,6 +22,8 @@ std::shared_ptr<Mesh> createWheel(float radius, float width, const Color& color)
     material->color = color;
 
     auto wheel = Mesh::create(geometry, material);
+    wheel->castShadow = true;
+    wheel->receiveShadow = true;
     return wheel;
 }
 

@@ -8,6 +8,8 @@ int main() {
 
     Canvas canvas("Vehicle Demo");
     GLRenderer renderer{canvas.size()};
+    renderer.shadowMap().enabled = true;
+    renderer.shadowMap().type = ShadowMap::PFCSoft;
     auto testScene = createTestScene(canvas);
     ImguiFunctionalContextCompat ui{canvas, [&]() {
         testScene.drawUi();
