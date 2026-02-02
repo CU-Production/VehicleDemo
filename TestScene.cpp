@@ -111,6 +111,8 @@ void TestScene::drawUi() {
     if (!physicsVehicles.empty()) {
         ImGui::Separator();
         ImGui::Text("Active vehicle: %d", activeVehicle + 1);
+        int maxIndex = static_cast<int>(physicsVehicles.size()) - 1;
+        ImGui::SliderInt("Active index", &activeVehicle, 0, maxIndex);
 
         auto& vehicle = physicsVehicles[activeVehicle];
         auto& settings = vehicle->settings();
