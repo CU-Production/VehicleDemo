@@ -79,8 +79,8 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
 
     for (const auto& wheel : model_.wheels) {
         auto* w = new WheelSettingsWV;
-        // Use mesh X/Z, but set Y from body height to ensure ground contact.
-        w->mPosition = Vec3(wheel->position.x, -0.9f * halfExtent.GetY(), wheel->position.z);
+        // Use mesh X/Z, set Y so wheel bottom aligns with body bottom.
+        w->mPosition = Vec3(wheel->position.x, -halfExtent.GetY() + wheelRadius, wheel->position.z);
         w->mSuspensionDirection = suspensionDir;
         w->mSteeringAxis = steeringAxis;
         w->mWheelUp = wheelUp;

@@ -26,8 +26,8 @@ std::shared_ptr<Mesh> createWheel(float radius, float width, const Color& color)
 VehicleModel buildKart() {
     auto group = Group::create();
 
-    auto body = createBox({1.2f, 0.4f, 2.2f}, {0, 0.4f, 0}, Color::green);
-    auto seat = createBox({0.8f, 0.6f, 0.8f}, {0, 0.8f, -0.2f}, Color::darkgreen);
+    auto body = createBox({1.2f, 0.4f, 2.2f}, {0, 0.0f, 0}, Color::green);
+    auto seat = createBox({0.8f, 0.6f, 0.8f}, {0, 0.5f, -0.2f}, Color::darkgreen);
     group->add(body);
     group->add(seat);
 
@@ -56,8 +56,8 @@ VehicleModel buildKart() {
 VehicleModel buildSedan() {
     auto group = Group::create();
 
-    auto body = createBox({1.6f, 0.6f, 3.6f}, {0, 0.6f, 0}, Color::blue);
-    auto cabin = createBox({1.4f, 0.8f, 1.6f}, {0, 1.2f, -0.2f}, Color::lightblue);
+    auto body = createBox({1.6f, 0.6f, 3.6f}, {0, 0.0f, 0}, Color::blue);
+    auto cabin = createBox({1.4f, 0.8f, 1.6f}, {0, 0.7f, -0.2f}, Color::lightblue);
     group->add(body);
     group->add(cabin);
 
@@ -86,8 +86,8 @@ VehicleModel buildSedan() {
 VehicleModel buildTruck() {
     auto group = Group::create();
 
-    auto body = createBox({2.0f, 0.8f, 5.2f}, {0, 0.8f, 0.4f}, Color::red);
-    auto cabin = createBox({1.8f, 1.2f, 1.6f}, {0, 1.4f, 1.8f}, Color::darkred);
+    auto body = createBox({2.0f, 0.8f, 5.2f}, {0, 0.0f, 0.4f}, Color::red);
+    auto cabin = createBox({1.8f, 1.2f, 1.6f}, {0, 1.0f, 1.8f}, Color::darkred);
     group->add(body);
     group->add(cabin);
 
