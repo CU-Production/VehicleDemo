@@ -87,22 +87,19 @@ void TestScene::update(float dt) {
         activeVehicle = switchTo;
     }
 
-    if (!physicsVehicles.empty()) {
-        physicsVehicles[activeVehicle]->applyInput(controller.input());
+    VehicleInput input = controller.input();
+    for (size_t i = 0; i < physicsVehicles.size(); ++i) {
+        if (static_cast<int>(i) == activeVehicle) {
+            physicsVehicles[i]->applyInput(input);
+        } else {
+            physicsVehicles[i]->applyInput({});
+        }
     }
 
     physics->step(dt);
 
     for (auto& vehicle : physicsVehicles) {
         vehicle->syncVisual();
-    }
-
-    for (size_t i = 0; i < physicsVehicles.size(); ++i) {
-        float speed = physicsVehicles[i]->speed();
-        float wheelSpin = speed * dt;
-        for (const auto& wheel : vehicles[i].wheels) {
-            wheel->rotation.x -= wheelSpin;
-        }
     }
 }
 

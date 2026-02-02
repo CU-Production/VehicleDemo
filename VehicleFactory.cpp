@@ -49,9 +49,10 @@ VehicleModel buildKart() {
     w4->position.set(-x, r, -z);
 
     wheels = {w1, w2, w3, w4};
+    std::vector<std::shared_ptr<Mesh>> steeringWheels = {w1, w2};
     for (const auto& wheel : wheels) group->add(wheel);
 
-    return {group, wheels};
+    return {group, wheels, steeringWheels};
 }
 
 VehicleModel buildSedan() {
@@ -78,9 +79,10 @@ VehicleModel buildSedan() {
     w4->position.set(-x, r, -z);
 
     wheels = {w1, w2, w3, w4};
+    std::vector<std::shared_ptr<Mesh>> steeringWheels = {w1, w2};
     for (const auto& wheel : wheels) group->add(wheel);
 
-    return {group, wheels};
+    return {group, wheels, steeringWheels};
 }
 
 VehicleModel buildTruck() {
@@ -113,9 +115,10 @@ VehicleModel buildTruck() {
     w6->position.set(-x, r, z3);
 
     wheels = {w1, w2, w3, w4, w5, w6};
+    std::vector<std::shared_ptr<Mesh>> steeringWheels = {w1, w2};
     for (const auto& wheel : wheels) group->add(wheel);
 
-    return {group, wheels};
+    return {group, wheels, steeringWheels};
 }
 
 } // namespace

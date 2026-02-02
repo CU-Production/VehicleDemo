@@ -12,6 +12,7 @@ enum class VehicleType {
 struct VehicleModel {
     std::shared_ptr<threepp::Group> group;
     std::vector<std::shared_ptr<threepp::Mesh>> wheels;
+    std::vector<std::shared_ptr<threepp::Mesh>> steeringWheels;
 };
 
 class VehicleFactory {
