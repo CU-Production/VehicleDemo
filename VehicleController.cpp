@@ -16,9 +16,19 @@ void VehicleController::update(float dt) {
     if (left_) targetSteer -= 1.f;
     if (right_) targetSteer += 1.f;
 
-    float speed = std::clamp(dt * 6.f, 0.f, 1.f);
-    throttle_ += (targetThrottle - throttle_) * speed;
-    steer_ += (targetSteer - steer_) * speed;
+    if (!accel_ && !reverse_) {
+        throttle_ = 0.f;
+    } else {
+        float speed = std::clamp(dt * 6.f, 0.f, 1.f);
+        throttle_ += (targetThrottle - throttle_) * speed;
+    }
+
+    if (!left_ && !right_) {
+        steer_ = 0.f;
+    } else {
+        float speed = std::clamp(dt * 6.f, 0.f, 1.f);
+        steer_ += (targetSteer - steer_) * speed;
+    }
 }
 
 VehicleInput VehicleController::input() const {

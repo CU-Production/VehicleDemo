@@ -79,13 +79,14 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
 
     for (const auto& wheel : model_.wheels) {
         auto* w = new WheelSettingsWV;
-        w->mPosition = Vec3(wheel->position.x, wheel->position.y, wheel->position.z);
+        // Use mesh X/Z, but set Y from body height to ensure ground contact.
+        w->mPosition = Vec3(wheel->position.x, -0.9f * halfExtent.GetY(), wheel->position.z);
         w->mSuspensionDirection = suspensionDir;
         w->mSteeringAxis = steeringAxis;
         w->mWheelUp = wheelUp;
         w->mWheelForward = wheelForward;
-        w->mSuspensionMinLength = 0.3f;
-        w->mSuspensionMaxLength = 0.5f;
+        w->mSuspensionMinLength = 0.2f;
+        w->mSuspensionMaxLength = 0.6f;
         w->mSuspensionSpring.mFrequency = 1.5f;
         w->mSuspensionSpring.mDamping = 0.5f;
         w->mRadius = wheelRadius;
@@ -172,7 +173,7 @@ void PhysicsVehicle::applyInput(const VehicleInput& input) {
         brake = std::max(brake, 1.f);
         throttle = 0.f;
     } else if (std::abs(throttle) < 0.01f && std::abs(forwardSpeed) > 0.1f) {
-        brake = std::max(brake, 0.15f);
+        brake = std::max(brake, 0.3f);
     }
 
     controller_->GetEngine().mMaxTorque = settings_.engineForce;
