@@ -85,9 +85,9 @@ TestScene createTestScene(Canvas& canvas) {
     testScene.scene->add(truck.group);
 
     testScene.vehicles = {kart, sedan, truck};
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[0], VehicleType::Kart, JPH::RVec3(-6, 0.5f, 0)));
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[1], VehicleType::Sedan, JPH::RVec3(0, 0.5f, 0)));
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[2], VehicleType::Truck, JPH::RVec3(7, 0.5f, 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[0], VehicleType::Kart, JPH::RVec3(-6, PhysicsVehicle::spawnHeight(VehicleType::Kart), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[1], VehicleType::Sedan, JPH::RVec3(0, PhysicsVehicle::spawnHeight(VehicleType::Sedan), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[2], VehicleType::Truck, JPH::RVec3(7, PhysicsVehicle::spawnHeight(VehicleType::Truck), 0)));
 
     return testScene;
 }

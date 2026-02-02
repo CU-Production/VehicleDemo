@@ -50,7 +50,9 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         default:
             break;
     }
-    auto shape = OffsetCenterOfMassShapeSettings(Vec3(0, -halfExtent.GetY(), 0), new BoxShape(halfExtent)).Create().Get();
+    // Lower COM slightly for stability while keeping visual/physical alignment.
+    const float comOffset = -0.6f * halfExtent.GetY();
+    auto shape = OffsetCenterOfMassShapeSettings(Vec3(0, comOffset, 0), new BoxShape(halfExtent)).Create().Get();
 
     BodyCreationSettings bodySettings(
         shape,
@@ -82,14 +84,15 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
 
     for (const auto& wheel : model_.wheels) {
         auto* w = new WheelSettingsWV;
-        // Use mesh X/Z, set Y so wheel bottom aligns with body bottom.
-        w->mPosition = Vec3(wheel->position.x, -halfExtent.GetY() + wheelRadius, wheel->position.z);
+        // Keep wheel center relative to COM so that tire bottom sits near ground.
+        w->mPosition = Vec3(wheel->position.x, comOffset, wheel->position.z);
         w->mSuspensionDirection = suspensionDir;
         w->mSteeringAxis = steeringAxis;
         w->mWheelUp = wheelUp;
         w->mWheelForward = wheelForward;
-        w->mSuspensionMinLength = 0.2f;
-        w->mSuspensionMaxLength = 0.6f;
+        // Match Jolt demo suspension range.
+        w->mSuspensionMinLength = 0.3f;
+        w->mSuspensionMaxLength = 0.5f;
         w->mSuspensionSpring.mFrequency = 1.5f;
         w->mSuspensionSpring.mDamping = 0.5f;
         w->mRadius = wheelRadius;
@@ -101,9 +104,6 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         vehicleSettings.mWheels.push_back(w);
 
         Vec3 wheelRight = Vec3::sAxisY();
-        if (wheel->position.x < 0) {
-            wheelRight = -wheelRight;
-        }
         wheelRights_.push_back(wheelRight);
     }
 
@@ -133,7 +133,7 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
     }
 
     vehicleConstraint_ = new VehicleConstraint(*body_, vehicleSettings);
-    collisionTester_ = new VehicleCollisionTesterRay(PhysicsLayers::Dynamic);
+    collisionTester_ = new VehicleCollisionTesterCastCylinder(PhysicsLayers::Dynamic);
     vehicleConstraint_->SetVehicleCollisionTester(collisionTester_);
 
     world_.system().AddConstraint(vehicleConstraint_);
@@ -214,4 +214,27 @@ VehicleSettings& PhysicsVehicle::settings() {
 
 VehicleType PhysicsVehicle::type() const {
     return type_;
+}
+
+float PhysicsVehicle::spawnHeight(VehicleType type) {
+    float halfY = 0.3f;
+    float wheelRadius = 0.4f;
+    switch (type) {
+        case VehicleType::Kart:
+            halfY = 0.2f;
+            wheelRadius = 0.35f;
+            break;
+        case VehicleType::Sedan:
+            halfY = 0.3f;
+            wheelRadius = 0.45f;
+            break;
+        case VehicleType::Truck:
+            halfY = 0.4f;
+            wheelRadius = 0.55f;
+            break;
+        default:
+            break;
+    }
+    const float comOffset = -0.6f * halfY;
+    return wheelRadius - comOffset;
 }

@@ -36,6 +36,7 @@ public:
     float speed() const;
     VehicleSettings& settings();
     VehicleType type() const;
+    static float spawnHeight(VehicleType type);
 
 private:
     PhysicsWorld& world_;
