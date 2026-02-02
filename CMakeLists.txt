@@ -48,5 +48,9 @@ FetchContent_Declare(JoltPhysics
 )
 FetchContent_MakeAvailable(JoltPhysics)
 
-add_executable(VehicleDemo main.cpp)
+add_executable(VehicleDemo
+    main.cpp
+    VehicleFactory.cpp
+    TestScene.cpp
+)
 target_link_libraries(VehicleDemo PRIVATE threepp::threepp Jolt)
