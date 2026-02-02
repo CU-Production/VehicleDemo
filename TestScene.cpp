@@ -135,6 +135,7 @@ void TestScene::update(float dt) {
 
         physics->system().DrawBodies(settings, debugRenderer.get());
         physics->system().DrawConstraints(debugRenderer.get());
+        debugRenderer->EndFrame();
     }
 #endif
 }

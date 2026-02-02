@@ -11,6 +11,7 @@ public:
     JoltDebugRenderer();
 
     void BeginFrame();
+    void EndFrame();
 
     void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
     void DrawText3D(JPH::RVec3Arg, const std::string_view&, JPH::ColorArg, float) override {}
@@ -21,5 +22,10 @@ public:
 
 private:
     std::shared_ptr<threepp::Group> group_;
+    std::shared_ptr<threepp::BufferGeometry> lineGeometry_;
+    std::shared_ptr<threepp::LineBasicMaterial> lineMaterial_;
+    std::shared_ptr<threepp::LineSegments> lineSegments_;
+    std::vector<float> linePositions_;
+    std::vector<float> lineColors_;
 };
 #endif
