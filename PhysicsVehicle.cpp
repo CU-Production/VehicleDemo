@@ -12,21 +12,21 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
     Vec3 halfExtent(1.0f, 0.5f, 2.0f);
     switch (type_) {
         case VehicleType::Kart:
-            halfExtent = Vec3(1.1f, 0.3f, 0.6f);
+            halfExtent = Vec3(0.6f, 0.3f, 1.1f);
             settings_.mass = 450.f;
             settings_.engineForce = 4500.f;
             settings_.maxSpeed = 22.f;
             settings_.steerTorque = 1200.f;
             break;
         case VehicleType::Sedan:
-            halfExtent = Vec3(1.8f, 0.5f, 0.8f);
+            halfExtent = Vec3(0.8f, 0.5f, 1.8f);
             settings_.mass = 1100.f;
             settings_.engineForce = 8000.f;
             settings_.maxSpeed = 26.f;
             settings_.steerTorque = 1800.f;
             break;
         case VehicleType::Truck:
-            halfExtent = Vec3(2.6f, 0.6f, 1.0f);
+            halfExtent = Vec3(1.0f, 0.6f, 2.6f);
             settings_.mass = 2600.f;
             settings_.engineForce = 12000.f;
             settings_.maxSpeed = 18.f;
