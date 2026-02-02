@@ -18,7 +18,8 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
     float wheelWidth = 0.3f;
     switch (type_) {
         case VehicleType::Kart:
-            halfExtent = Vec3(0.6f, 0.3f, 1.1f);
+            // Match visual body size: 1.2 x 0.4 x 2.2
+            halfExtent = Vec3(0.6f, 0.2f, 1.1f);
             wheelRadius = 0.35f;
             wheelWidth = 0.25f;
             settings_.mass = 450.f;
@@ -27,7 +28,8 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
             settings_.steerTorque = 1200.f;
             break;
         case VehicleType::Sedan:
-            halfExtent = Vec3(0.8f, 0.5f, 1.8f);
+            // Match visual body size: 1.6 x 0.6 x 3.6
+            halfExtent = Vec3(0.8f, 0.3f, 1.8f);
             wheelRadius = 0.45f;
             wheelWidth = 0.3f;
             settings_.mass = 1100.f;
@@ -36,7 +38,8 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
             settings_.steerTorque = 1800.f;
             break;
         case VehicleType::Truck:
-            halfExtent = Vec3(1.0f, 0.6f, 2.6f);
+            // Match visual body size: 2.0 x 0.8 x 5.2
+            halfExtent = Vec3(1.0f, 0.4f, 2.6f);
             wheelRadius = 0.55f;
             wheelWidth = 0.35f;
             settings_.mass = 2600.f;
