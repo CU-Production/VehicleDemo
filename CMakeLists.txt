@@ -48,9 +48,39 @@ FetchContent_Declare(JoltPhysics
 )
 FetchContent_MakeAvailable(JoltPhysics)
 
+# imgui
+FetchContent_Declare(imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.91.0
+)
+FetchContent_MakeAvailable(imgui)
+
+find_package(OpenGL REQUIRED)
+
+add_library(imgui STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+target_link_libraries(imgui PUBLIC OpenGL::GL)
+if (TARGET glfw)
+    target_link_libraries(imgui PUBLIC glfw)
+endif ()
+
 add_executable(VehicleDemo
     main.cpp
+    PhysicsWorld.cpp
+    PhysicsVehicle.cpp
+    VehicleController.cpp
     VehicleFactory.cpp
     TestScene.cpp
 )
-target_link_libraries(VehicleDemo PRIVATE threepp::threepp Jolt)
+target_link_libraries(VehicleDemo PRIVATE threepp::threepp Jolt imgui)
