@@ -20,8 +20,6 @@ std::shared_ptr<Mesh> createWheel(float radius, float width, const Color& color)
     material->color = color;
 
     auto wheel = Mesh::create(geometry, material);
-    // Align cylinder axis (Y) to vehicle axle (X)
-    wheel->rotateZ(math::degToRad(90));
     return wheel;
 }
 

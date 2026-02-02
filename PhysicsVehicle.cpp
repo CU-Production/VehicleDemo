@@ -95,7 +95,7 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
 
         vehicleSettings.mWheels.push_back(w);
 
-        Vec3 wheelRight = -Vec3::sAxisX();
+        Vec3 wheelRight = Vec3::sAxisY();
         if (wheel->position.x < 0) {
             wheelRight = -wheelRight;
         }
@@ -179,7 +179,7 @@ void PhysicsVehicle::syncVisual() {
     model_.group->quaternion.set(rotation.GetX(), rotation.GetY(), rotation.GetZ(), rotation.GetW());
 
     if (!vehicleConstraint_) return;
-    const Vec3 wheelUp = Vec3::sAxisY();
+    const Vec3 wheelUp = Vec3::sAxisX();
     for (size_t i = 0; i < model_.wheels.size(); ++i) {
         Mat44 transform = vehicleConstraint_->GetWheelLocalTransform(static_cast<uint>(i), wheelRights_[i], wheelUp);
         Vec3 t = transform.GetTranslation();
