@@ -36,6 +36,7 @@ VehicleInput VehicleController::input() const {
     input.throttle = throttle_;
     input.steer = steer_;
     input.brake = brake_;
+    input.handbrake = brake_;
     return input;
 }
 

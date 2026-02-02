@@ -12,6 +12,7 @@ struct VehicleInput {
     float throttle = 0.f;
     float steer = 0.f;
     bool brake = false;
+    bool handbrake = false;
 };
 
 struct VehicleSettings {
@@ -19,7 +20,7 @@ struct VehicleSettings {
     float engineForce = 8000.f;
     float maxSpeed = 25.f;
     float steerTorque = 1800.f;
-    float brakeForce = 1200.f;
+    float brakeForce = 4000.f;
     float linearDamping = 0.2f;
     float angularDamping = 0.6f;
 };

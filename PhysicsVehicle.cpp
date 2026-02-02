@@ -96,7 +96,7 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         w->mWidth = wheelWidth;
         w->mMaxSteerAngle = (wheel->position.z > 0) ? (JPH_PI / 6.f) : 0.f;
         w->mMaxBrakeTorque = settings_.brakeForce;
-        w->mMaxHandBrakeTorque = (wheel->position.z > 0) ? 0.f : (settings_.brakeForce * 1.5f);
+        w->mMaxHandBrakeTorque = (wheel->position.z > 0) ? 0.f : (settings_.brakeForce * 2.0f);
 
         vehicleSettings.mWheels.push_back(w);
 
@@ -180,7 +180,7 @@ void PhysicsVehicle::applyInput(const VehicleInput& input) {
     }
 
     controller_->GetEngine().mMaxTorque = settings_.engineForce;
-    controller_->SetDriverInput(throttle, input.steer, brake, 0.f);
+    controller_->SetDriverInput(throttle, input.steer, brake, input.handbrake ? 1.f : 0.f);
 }
 
 void PhysicsVehicle::syncVisual() {
