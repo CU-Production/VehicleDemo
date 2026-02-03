@@ -32,8 +32,14 @@ VehicleModel buildKart() {
 
     auto body = createBox({1.2f, 0.4f, 2.2f}, {0, 0.0f, 0}, Color::green);
     auto seat = createBox({0.8f, 0.6f, 0.8f}, {0, 0.5f, -0.2f}, Color::darkgreen);
+    auto bumperFront = createBox({1.3f, 0.2f, 0.2f}, {0, 0.1f, 1.2f}, Color(0x2a2a2a));
+    auto bumperRear = createBox({1.3f, 0.2f, 0.2f}, {0, 0.1f, -1.2f}, Color(0x2a2a2a));
+    auto engine = createBox({0.6f, 0.3f, 0.5f}, {0, 0.35f, 0.6f}, Color(0x444444));
     group->add(body);
     group->add(seat);
+    group->add(bumperFront);
+    group->add(bumperRear);
+    group->add(engine);
 
     std::vector<std::shared_ptr<Mesh>> wheels;
     const float r = 0.35f;
@@ -62,8 +68,16 @@ VehicleModel buildSedan() {
 
     auto body = createBox({1.6f, 0.6f, 3.6f}, {0, 0.0f, 0}, Color::blue);
     auto cabin = createBox({1.4f, 0.8f, 1.6f}, {0, 0.7f, -0.2f}, Color::lightblue);
+    auto hood = createBox({1.5f, 0.3f, 0.9f}, {0, 0.35f, 1.1f}, Color(0x2f5aa6));
+    auto trunk = createBox({1.5f, 0.25f, 0.9f}, {0, 0.3f, -1.2f}, Color(0x2f5aa6));
+    auto bumperFront = createBox({1.6f, 0.25f, 0.15f}, {0, 0.15f, 1.85f}, Color(0x222222));
+    auto bumperRear = createBox({1.6f, 0.25f, 0.15f}, {0, 0.15f, -1.85f}, Color(0x222222));
     group->add(body);
     group->add(cabin);
+    group->add(hood);
+    group->add(trunk);
+    group->add(bumperFront);
+    group->add(bumperRear);
 
     std::vector<std::shared_ptr<Mesh>> wheels;
     const float r = 0.45f;
@@ -92,8 +106,14 @@ VehicleModel buildTruck() {
 
     auto body = createBox({2.0f, 0.8f, 5.2f}, {0, 0.0f, 0.4f}, Color::red);
     auto cabin = createBox({1.8f, 1.2f, 1.6f}, {0, 1.0f, 1.8f}, Color::darkred);
+    auto grille = createBox({1.6f, 0.6f, 0.2f}, {0, 0.6f, 2.8f}, Color(0x222222));
+    auto bumper = createBox({2.1f, 0.3f, 0.2f}, {0, 0.2f, 2.9f}, Color(0x333333));
+    auto bed = createBox({2.0f, 0.6f, 2.4f}, {0, 0.5f, -1.4f}, Color(0x8b1a1a));
     group->add(body);
     group->add(cabin);
+    group->add(grille);
+    group->add(bumper);
+    group->add(bed);
 
     std::vector<std::shared_ptr<Mesh>> wheels;
     const float r = 0.55f;
@@ -128,8 +148,16 @@ VehicleModel buildTank() {
 
     auto body = createBox({3.4f, 1.0f, 6.4f}, {0, 0.0f, 0}, Color::darkgray);
     auto turret = createBox({2.8f, 0.8f, 4.0f}, {0, 0.9f, 0}, Color::gray);
+    auto hatch = createBox({0.8f, 0.2f, 1.0f}, {0, 1.35f, -0.4f}, Color(0x555555));
+    auto barrel = createBox({0.3f, 0.3f, 3.0f}, {0, 1.05f, 3.0f}, Color(0x444444));
+    auto skirtLeft = createBox({0.2f, 0.6f, 6.0f}, {1.9f, 0.2f, 0}, Color(0x2a2a2a));
+    auto skirtRight = createBox({0.2f, 0.6f, 6.0f}, {-1.9f, 0.2f, 0}, Color(0x2a2a2a));
     group->add(body);
     group->add(turret);
+    group->add(hatch);
+    group->add(barrel);
+    group->add(skirtLeft);
+    group->add(skirtRight);
 
     std::vector<std::shared_ptr<Mesh>> wheels;
     const float r = 0.3f;
@@ -159,8 +187,14 @@ VehicleModel buildMotorcycle() {
 
     auto body = createBox({0.5f, 0.6f, 1.6f}, {0, 0.0f, 0}, Color::darkblue);
     auto seat = createBox({0.4f, 0.4f, 0.6f}, {0, 0.5f, -0.2f}, Color::blue);
+    auto tank = createBox({0.45f, 0.35f, 0.5f}, {0, 0.55f, 0.4f}, Color(0x1f3a93));
+    auto fork = createBox({0.1f, 0.6f, 0.2f}, {0, 0.35f, 0.9f}, Color(0x3a3a3a));
+    auto handle = createBox({0.6f, 0.1f, 0.1f}, {0, 0.9f, 0.7f}, Color(0x3a3a3a));
     group->add(body);
     group->add(seat);
+    group->add(tank);
+    group->add(fork);
+    group->add(handle);
 
     std::vector<std::shared_ptr<Mesh>> wheels;
     const float r = 0.31f;

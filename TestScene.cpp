@@ -10,17 +10,58 @@ using namespace threepp;
 
 namespace {
 
-std::shared_ptr<Mesh> createGround() {
-    auto planeGeometry = PlaneGeometry::create(600, 600);
-    auto planeMaterial = MeshLambertMaterial::create();
-    planeMaterial->color = Color::gray;
-    planeMaterial->side = Side::Double;
+std::shared_ptr<Group> createGround() {
+    auto group = Group::create();
 
-    auto plane = Mesh::create(planeGeometry, planeMaterial);
-    plane->position.y = 0;
-    plane->rotateX(math::degToRad(90));
-    plane->receiveShadow = true;
-    return plane;
+    auto groundGeometry = PlaneGeometry::create(600, 600);
+    auto groundMaterial = MeshLambertMaterial::create();
+    groundMaterial->color = Color(0x3a5f3a);
+    groundMaterial->side = Side::Double;
+    auto ground = Mesh::create(groundGeometry, groundMaterial);
+    ground->position.y = 0;
+    ground->rotateX(math::degToRad(90));
+    ground->receiveShadow = true;
+    group->add(ground);
+
+    auto trackGeometry = PlaneGeometry::create(200, 30);
+    auto trackMaterial = MeshLambertMaterial::create();
+    trackMaterial->color = Color(0x303030);
+    trackMaterial->side = Side::Double;
+    auto track = Mesh::create(trackGeometry, trackMaterial);
+    track->position.y = 0.01f;
+    track->rotateX(math::degToRad(90));
+    track->receiveShadow = true;
+    group->add(track);
+
+    auto lineMaterial = MeshLambertMaterial::create();
+    lineMaterial->color = Color(0xf1f1f1);
+    lineMaterial->side = Side::Double;
+    auto centerLine = Mesh::create(PlaneGeometry::create(200, 1.2f), lineMaterial);
+    centerLine->position.y = 0.02f;
+    centerLine->rotateX(math::degToRad(90));
+    group->add(centerLine);
+
+    for (int i = -9; i <= 9; ++i) {
+        if (i % 2 == 0) continue;
+        auto stripe = Mesh::create(PlaneGeometry::create(8, 1.2f), lineMaterial);
+        stripe->position.set(i * 10.f, 0.025f, 0);
+        stripe->rotateX(math::degToRad(90));
+        group->add(stripe);
+    }
+
+    auto borderMaterial = MeshLambertMaterial::create();
+    borderMaterial->color = Color(0xd7b27a);
+    borderMaterial->side = Side::Double;
+    auto borderLeft = Mesh::create(PlaneGeometry::create(200, 1.5f), borderMaterial);
+    borderLeft->position.set(0, 0.02f, -15.75f);
+    borderLeft->rotateX(math::degToRad(90));
+    group->add(borderLeft);
+    auto borderRight = Mesh::create(PlaneGeometry::create(200, 1.5f), borderMaterial);
+    borderRight->position.set(0, 0.02f, 15.75f);
+    borderRight->rotateX(math::degToRad(90));
+    group->add(borderRight);
+
+    return group;
 }
 
 void createGroundBody(PhysicsWorld& physics) {
@@ -69,17 +110,17 @@ void addLights(const std::shared_ptr<Scene>& scene) {
     auto hemi = HemisphereLight::create(threepp::Color::white, threepp::Color::gray, 0.9f);
     scene->add(hemi);
 
-    auto dir = DirectionalLight::create(threepp::Color::white, 0.8f);
-    dir->position.set(5, 8, 5);
+    auto dir = DirectionalLight::create(threepp::Color::white, 1.0f);
+    dir->position.set(20, 25, 20);
     dir->castShadow = true;
-    dir->shadow->mapSize.set(2048, 2048);
+    dir->shadow->mapSize.set(4096, 4096);
     dir->shadow->camera->nearPlane = 1.f;
-    dir->shadow->camera->farPlane = 50.f;
+    dir->shadow->camera->farPlane = 120.f;
     if (auto* shadowCam = dynamic_cast<OrthographicCamera*>(dir->shadow->camera.get())) {
-        shadowCam->left = -20.f;
-        shadowCam->right = 20.f;
-        shadowCam->top = 20.f;
-        shadowCam->bottom = -20.f;
+        shadowCam->left = -60.f;
+        shadowCam->right = 60.f;
+        shadowCam->top = 60.f;
+        shadowCam->bottom = -60.f;
         shadowCam->updateProjectionMatrix();
     }
     scene->add(dir);
