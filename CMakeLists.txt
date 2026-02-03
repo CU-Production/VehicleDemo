@@ -77,13 +77,13 @@ if (TARGET glfw)
 endif ()
 
 add_executable(VehicleDemo
-    main.cpp
-    JoltDebugRenderer.cpp
-    PhysicsWorld.cpp
-    PhysicsVehicle.cpp
-    VehicleController.cpp
-    VehicleFactory.cpp
-    TestScene.cpp
+    src/main.cpp
+    src/JoltDebugRenderer.cpp
+    src/PhysicsWorld.cpp
+    src/PhysicsVehicle.cpp
+    src/VehicleController.cpp
+    src/VehicleFactory.cpp
+    src/TestScene.cpp
 )
 target_link_libraries(VehicleDemo PRIVATE threepp::threepp Jolt imgui)
 target_compile_definitions(VehicleDemo PRIVATE JPH_DEBUG_RENDERER)
