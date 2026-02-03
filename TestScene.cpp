@@ -13,7 +13,7 @@ namespace {
 std::shared_ptr<Group> createGround() {
     auto group = Group::create();
 
-    auto groundGeometry = PlaneGeometry::create(600, 600);
+    auto groundGeometry = PlaneGeometry::create(1400, 1400);
     auto groundMaterial = MeshLambertMaterial::create();
     groundMaterial->color = Color(0x3a5f3a);
     groundMaterial->side = Side::Double;
@@ -23,11 +23,13 @@ std::shared_ptr<Group> createGround() {
     ground->receiveShadow = true;
     group->add(ground);
 
-    auto trackGeometry = PlaneGeometry::create(200, 30);
+    const float trackInner = 120.f;
+    const float trackOuter = 170.f;
+
     auto trackMaterial = MeshLambertMaterial::create();
     trackMaterial->color = Color(0x303030);
     trackMaterial->side = Side::Double;
-    auto track = Mesh::create(trackGeometry, trackMaterial);
+    auto track = Mesh::create(RingGeometry::create(trackInner, trackOuter, 96), trackMaterial);
     track->position.y = 0.01f;
     track->rotateX(math::degToRad(90));
     track->receiveShadow = true;
@@ -36,30 +38,129 @@ std::shared_ptr<Group> createGround() {
     auto lineMaterial = MeshLambertMaterial::create();
     lineMaterial->color = Color(0xf1f1f1);
     lineMaterial->side = Side::Double;
-    auto centerLine = Mesh::create(PlaneGeometry::create(200, 1.2f), lineMaterial);
+    auto centerLine = Mesh::create(RingGeometry::create(144.0f, 146.0f, 128), lineMaterial);
     centerLine->position.y = 0.02f;
     centerLine->rotateX(math::degToRad(90));
     group->add(centerLine);
 
-    for (int i = -9; i <= 9; ++i) {
-        if (i % 2 == 0) continue;
-        auto stripe = Mesh::create(PlaneGeometry::create(8, 1.2f), lineMaterial);
-        stripe->position.set(i * 10.f, 0.025f, 0);
-        stripe->rotateX(math::degToRad(90));
+    auto curbMaterial = MeshLambertMaterial::create();
+    curbMaterial->color = Color(0xff4d4d);
+    curbMaterial->side = Side::Double;
+    auto curbInner = Mesh::create(RingGeometry::create(trackInner - 3.5f, trackInner, 128), curbMaterial);
+    curbInner->position.y = 0.015f;
+    curbInner->rotateX(math::degToRad(90));
+    group->add(curbInner);
+    auto curbOuter = Mesh::create(RingGeometry::create(trackOuter, trackOuter + 3.5f, 128), curbMaterial);
+    curbOuter->position.y = 0.015f;
+    curbOuter->rotateX(math::degToRad(90));
+    group->add(curbOuter);
+
+    auto startLine = Mesh::create(PlaneGeometry::create(12, 4.f), lineMaterial);
+    startLine->position.set(trackOuter - 4.f, 0.025f, 0);
+    startLine->rotateX(math::degToRad(90));
+    group->add(startLine);
+
+    auto outerGrassMaterial = MeshLambertMaterial::create();
+    outerGrassMaterial->color = Color(0x4fa24f);
+    outerGrassMaterial->side = Side::Double;
+    auto outerGrass = Mesh::create(RingGeometry::create(trackOuter + 6.f, trackOuter + 28.f, 128), outerGrassMaterial);
+    outerGrass->position.y = 0.005f;
+    outerGrass->rotateX(math::degToRad(90));
+    group->add(outerGrass);
+
+    auto innerGrassMaterial = MeshLambertMaterial::create();
+    innerGrassMaterial->color = Color(0x55b955);
+    innerGrassMaterial->side = Side::Double;
+    auto innerGrass = Mesh::create(RingGeometry::create(0.f, trackInner - 6.f, 128), innerGrassMaterial);
+    innerGrass->position.y = 0.005f;
+    innerGrass->rotateX(math::degToRad(90));
+    group->add(innerGrass);
+
+    auto stripeMaterial = MeshLambertMaterial::create();
+    stripeMaterial->color = Color(0xffffff);
+    stripeMaterial->side = Side::Double;
+    for (int i = 0; i < 18; ++i) {
+        float angle = math::degToRad(i * 20.f);
+        float r = (trackInner + trackOuter) * 0.5f;
+        auto stripe = Mesh::create(PlaneGeometry::create(8.f, 2.f), stripeMaterial);
+        stripe->position.set(std::cos(angle) * r, 0.03f, std::sin(angle) * r);
+        stripe->rotation.set(math::degToRad(90), -angle, 0);
         group->add(stripe);
     }
 
-    auto borderMaterial = MeshLambertMaterial::create();
-    borderMaterial->color = Color(0xd7b27a);
-    borderMaterial->side = Side::Double;
-    auto borderLeft = Mesh::create(PlaneGeometry::create(200, 1.5f), borderMaterial);
-    borderLeft->position.set(0, 0.02f, -15.75f);
-    borderLeft->rotateX(math::degToRad(90));
-    group->add(borderLeft);
-    auto borderRight = Mesh::create(PlaneGeometry::create(200, 1.5f), borderMaterial);
-    borderRight->position.set(0, 0.02f, 15.75f);
-    borderRight->rotateX(math::degToRad(90));
-    group->add(borderRight);
+    auto railMaterial = MeshLambertMaterial::create();
+    railMaterial->color = Color(0xff6b6b);
+    auto railInner = Mesh::create(RingGeometry::create(trackInner - 8.f, trackInner - 6.f, 128), railMaterial);
+    railInner->position.y = 0.05f;
+    railInner->rotateX(math::degToRad(90));
+    group->add(railInner);
+    auto railOuter = Mesh::create(RingGeometry::create(trackOuter + 6.f, trackOuter + 8.f, 128), railMaterial);
+    railOuter->position.y = 0.05f;
+    railOuter->rotateX(math::degToRad(90));
+    group->add(railOuter);
+
+    auto bannerMaterial = MeshLambertMaterial::create();
+    bannerMaterial->color = Color(0x06d6a0);
+    auto banner = Mesh::create(BoxGeometry::create(14.f, 1.f, 2.f), bannerMaterial);
+    banner->position.set(trackOuter - 10.f, 4.f, 0.f);
+    banner->castShadow = true;
+    banner->receiveShadow = true;
+    group->add(banner);
+    auto bannerLegL = Mesh::create(BoxGeometry::create(0.6f, 6.f, 0.6f), bannerMaterial);
+    bannerLegL->position.set(trackOuter - 17.f, 2.f, 0.f);
+    bannerLegL->castShadow = true;
+    bannerLegL->receiveShadow = true;
+    group->add(bannerLegL);
+    auto bannerLegR = Mesh::create(BoxGeometry::create(0.6f, 6.f, 0.6f), bannerMaterial);
+    bannerLegR->position.set(trackOuter - 3.f, 2.f, 0.f);
+    bannerLegR->castShadow = true;
+    bannerLegR->receiveShadow = true;
+    group->add(bannerLegR);
+
+    auto pitMaterial = MeshLambertMaterial::create();
+    pitMaterial->color = Color(0x8ecae6);
+    for (int i = 0; i < 6; ++i) {
+        auto pit = Mesh::create(BoxGeometry::create(10.f, 3.f, 6.f), pitMaterial);
+        pit->position.set(trackOuter + 30.f, 1.5f, -30.f + i * 12.f);
+        pit->castShadow = true;
+        pit->receiveShadow = true;
+        group->add(pit);
+    }
+
+    auto treeMaterial = MeshLambertMaterial::create();
+    treeMaterial->color = Color(0x2d6a4f);
+    auto trunkMaterial = MeshLambertMaterial::create();
+    trunkMaterial->color = Color(0x7f5539);
+    for (int i = 0; i < 10; ++i) {
+        float angle = math::degToRad(i * 36.f);
+        float r = trackOuter + 60.f;
+        auto trunk = Mesh::create(CylinderGeometry::create(0.6f, 0.8f, 6.f, 8), trunkMaterial);
+        trunk->position.set(std::cos(angle) * r, 3.f, std::sin(angle) * r);
+        trunk->castShadow = true;
+        trunk->receiveShadow = true;
+        group->add(trunk);
+        auto crown = Mesh::create(SphereGeometry::create(3.2f, 12, 12), treeMaterial);
+        crown->position.set(std::cos(angle) * r, 7.f, std::sin(angle) * r);
+        crown->castShadow = true;
+        crown->receiveShadow = true;
+        group->add(crown);
+    }
+
+    auto standMaterial = MeshLambertMaterial::create();
+    standMaterial->color = Color(0xffd166);
+    auto stand = Mesh::create(BoxGeometry::create(40.f, 6.f, 14.f), standMaterial);
+    stand->position.set(trackOuter + 20.f, 3.f, 0.f);
+    stand->castShadow = true;
+    stand->receiveShadow = true;
+    group->add(stand);
+
+    auto roofMaterial = MeshLambertMaterial::create();
+    roofMaterial->color = Color(0x118ab2);
+    auto roof = Mesh::create(BoxGeometry::create(42.f, 1.f, 16.f), roofMaterial);
+    roof->position.set(trackOuter + 20.f, 7.f, 0.f);
+    roof->castShadow = true;
+    roof->receiveShadow = true;
+    group->add(roof);
 
     return group;
 }
