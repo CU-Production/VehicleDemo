@@ -153,10 +153,10 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         front->mWheelForward = wheelForward;
         front->mRadius = wheelRadius;
         front->mWidth = wheelWidth;
-        front->mSuspensionMinLength = 0.3f;
-        front->mSuspensionMaxLength = 0.5f;
-        front->mSuspensionSpring.mFrequency = 1.5f;
-        front->mSuspensionSpring.mDamping = 0.5f;
+        front->mSuspensionMinLength = 0.2f;
+        front->mSuspensionMaxLength = 0.35f;
+        front->mSuspensionSpring.mFrequency = 1.0f;
+        front->mSuspensionSpring.mDamping = 1.0f;
         front->mMaxBrakeTorque = 500.0f;
 
         auto* back = new WheelSettingsWV;
@@ -168,10 +168,10 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         back->mWheelForward = wheelForward;
         back->mRadius = wheelRadius;
         back->mWidth = wheelWidth;
-        back->mSuspensionMinLength = 0.3f;
-        back->mSuspensionMaxLength = 0.5f;
-        back->mSuspensionSpring.mFrequency = 2.0f;
-        back->mSuspensionSpring.mDamping = 0.5f;
+        back->mSuspensionMinLength = 0.2f;
+        back->mSuspensionMaxLength = 0.35f;
+        back->mSuspensionSpring.mFrequency = 1.2f;
+        back->mSuspensionSpring.mDamping = 1.0f;
         back->mMaxBrakeTorque = 250.0f;
 
         vehicleSettings.mWheels = {front, back};
