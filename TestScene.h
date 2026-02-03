@@ -25,6 +25,7 @@ struct TestScene {
     void update(float dt);
     void drawUi();
     void onResize(threepp::WindowSize size, threepp::GLRenderer& renderer);
+    void resetSimulation();
 };
 
 TestScene createTestScene(threepp::Canvas& canvas);

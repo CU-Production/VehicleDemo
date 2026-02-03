@@ -46,6 +46,12 @@ int VehicleController::consumeSwitchRequest() {
     return request;
 }
 
+bool VehicleController::consumeResetRequest() {
+    bool request = resetRequest_;
+    resetRequest_ = false;
+    return request;
+}
+
 void VehicleController::onKeyPressed(KeyEvent evt) {
     switch (evt.key) {
         case Key::W:
@@ -96,6 +102,9 @@ void VehicleController::onKeyPressed(KeyEvent evt) {
             break;
         case Key::KP_5:
             switchRequest_ = 4;
+            break;
+        case Key::R:
+            resetRequest_ = true;
             break;
         default:
             break;

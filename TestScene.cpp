@@ -11,7 +11,7 @@ using namespace threepp;
 namespace {
 
 std::shared_ptr<Mesh> createGround() {
-    auto planeGeometry = PlaneGeometry::create(60, 60);
+    auto planeGeometry = PlaneGeometry::create(600, 600);
     auto planeMaterial = MeshLambertMaterial::create();
     planeMaterial->color = Color::gray;
     planeMaterial->side = Side::Double;
@@ -21,6 +21,48 @@ std::shared_ptr<Mesh> createGround() {
     plane->rotateX(math::degToRad(90));
     plane->receiveShadow = true;
     return plane;
+}
+
+void createGroundBody(PhysicsWorld& physics) {
+    JPH::BodyInterface& bodyInterface = physics.bodyInterface();
+    auto groundShape = new JPH::BoxShape(JPH::Vec3(300.f, 0.5f, 300.f));
+    JPH::BodyCreationSettings groundSettings(
+        groundShape,
+        JPH::RVec3(0, -0.5f, 0),
+        JPH::Quat::sIdentity(),
+        JPH::EMotionType::Static,
+        PhysicsLayers::Static);
+    bodyInterface.CreateAndAddBody(groundSettings, JPH::EActivation::DontActivate);
+}
+
+void setupVehicles(TestScene& testScene) {
+    auto kart = VehicleFactory::create(VehicleType::Kart);
+    kart.group->position.set(-12, 0, 0);
+    testScene.scene->add(kart.group);
+
+    auto sedan = VehicleFactory::create(VehicleType::Sedan);
+    sedan.group->position.set(-6, 0, 0);
+    testScene.scene->add(sedan.group);
+
+    auto truck = VehicleFactory::create(VehicleType::Truck);
+    truck.group->position.set(2, 0, 0);
+    testScene.scene->add(truck.group);
+
+    auto tank = VehicleFactory::create(VehicleType::Tank);
+    tank.group->position.set(10, 0, 0);
+    testScene.scene->add(tank.group);
+
+    auto motorcycle = VehicleFactory::create(VehicleType::Motorcycle);
+    motorcycle.group->position.set(16, 0, 0);
+    testScene.scene->add(motorcycle.group);
+
+    testScene.vehicles = {kart, sedan, truck, tank, motorcycle};
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[0], VehicleType::Kart, JPH::RVec3(-12, PhysicsVehicle::spawnHeight(VehicleType::Kart), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[1], VehicleType::Sedan, JPH::RVec3(-6, PhysicsVehicle::spawnHeight(VehicleType::Sedan), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[2], VehicleType::Truck, JPH::RVec3(2, PhysicsVehicle::spawnHeight(VehicleType::Truck), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[3], VehicleType::Tank, JPH::RVec3(10, PhysicsVehicle::spawnHeight(VehicleType::Tank), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[4], VehicleType::Motorcycle, JPH::RVec3(16, PhysicsVehicle::spawnHeight(VehicleType::Motorcycle), 0)));
+    testScene.activeVehicle = 0;
 }
 
 void addLights(const std::shared_ptr<Scene>& scene) {
@@ -61,43 +103,8 @@ TestScene createTestScene(Canvas& canvas) {
     testScene.scene->add(ground);
 
     testScene.physics = std::make_unique<PhysicsWorld>();
-
-    JPH::BodyInterface& bodyInterface = testScene.physics->bodyInterface();
-    auto groundShape = new JPH::BoxShape(JPH::Vec3(30.f, 0.5f, 30.f));
-    JPH::BodyCreationSettings groundSettings(
-        groundShape,
-        JPH::RVec3(0, -0.5f, 0),
-        JPH::Quat::sIdentity(),
-        JPH::EMotionType::Static,
-        PhysicsLayers::Static);
-    bodyInterface.CreateAndAddBody(groundSettings, JPH::EActivation::DontActivate);
-
-    auto kart = VehicleFactory::create(VehicleType::Kart);
-    kart.group->position.set(-12, 0, 0);
-    testScene.scene->add(kart.group);
-
-    auto sedan = VehicleFactory::create(VehicleType::Sedan);
-    sedan.group->position.set(-6, 0, 0);
-    testScene.scene->add(sedan.group);
-
-    auto truck = VehicleFactory::create(VehicleType::Truck);
-    truck.group->position.set(2, 0, 0);
-    testScene.scene->add(truck.group);
-
-    auto tank = VehicleFactory::create(VehicleType::Tank);
-    tank.group->position.set(10, 0, 0);
-    testScene.scene->add(tank.group);
-
-    auto motorcycle = VehicleFactory::create(VehicleType::Motorcycle);
-    motorcycle.group->position.set(16, 0, 0);
-    testScene.scene->add(motorcycle.group);
-
-    testScene.vehicles = {kart, sedan, truck, tank, motorcycle};
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[0], VehicleType::Kart, JPH::RVec3(-12, PhysicsVehicle::spawnHeight(VehicleType::Kart), 0)));
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[1], VehicleType::Sedan, JPH::RVec3(-6, PhysicsVehicle::spawnHeight(VehicleType::Sedan), 0)));
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[2], VehicleType::Truck, JPH::RVec3(2, PhysicsVehicle::spawnHeight(VehicleType::Truck), 0)));
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[3], VehicleType::Tank, JPH::RVec3(10, PhysicsVehicle::spawnHeight(VehicleType::Tank), 0)));
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[4], VehicleType::Motorcycle, JPH::RVec3(16, PhysicsVehicle::spawnHeight(VehicleType::Motorcycle), 0)));
+    createGroundBody(*testScene.physics);
+    setupVehicles(testScene);
 
 #ifdef JPH_DEBUG_RENDERER
     testScene.debugRenderer = std::make_unique<JoltDebugRenderer>();
@@ -113,6 +120,10 @@ void TestScene::update(float dt) {
     int switchTo = controller.consumeSwitchRequest();
     if (switchTo >= 0 && switchTo < static_cast<int>(physicsVehicles.size())) {
         activeVehicle = switchTo;
+    }
+    if (controller.consumeResetRequest()) {
+        resetSimulation();
+        return;
     }
 
     VehicleInput input = controller.input();
@@ -154,6 +165,7 @@ void TestScene::drawUi() {
     ImGui::Begin("Vehicle Debug");
     ImGui::Text("Controls: W/S throttle, A/D steer, Space brake");
     ImGui::Text("Switch vehicle: 1/2/3/4/5");
+    ImGui::Text("Reset: R");
 
     if (!physicsVehicles.empty()) {
         ImGui::Separator();
@@ -168,6 +180,9 @@ void TestScene::drawUi() {
         ImGui::SliderFloat("Steer torque", &settings.steerTorque, 200.f, 6000.f);
         ImGui::SliderFloat("Brake force", &settings.brakeForce, 200.f, 4000.f);
         ImGui::Text("Speed: %.2f m/s", vehicle->speed());
+    if (ImGui::Button("Reset Scene")) {
+        resetSimulation();
+    }
     }
 
 #ifdef JPH_DEBUG_RENDERER
@@ -175,6 +190,21 @@ void TestScene::drawUi() {
     ImGui::Checkbox("Jolt Debug Draw", &showDebugDraw);
 #endif
     ImGui::End();
+}
+
+void TestScene::resetSimulation() {
+    for (auto& vehicle : vehicles) {
+        if (vehicle.group) {
+            scene->remove(*vehicle.group);
+        }
+    }
+    physicsVehicles.clear();
+    vehicles.clear();
+    physics.reset();
+
+    physics = std::make_unique<PhysicsWorld>();
+    createGroundBody(*physics);
+    setupVehicles(*this);
 }
 
 void TestScene::onResize(WindowSize size, GLRenderer& renderer) {

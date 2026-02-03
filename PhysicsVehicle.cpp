@@ -75,8 +75,13 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         default:
             break;
     }
-    // Match Jolt demo: lower COM for stability.
-    const float comOffset = -0.9f * halfExtent.GetY();
+    // Match Jolt demo: motorcycle uses a slightly different COM offset.
+    float comOffset = -0.9f * halfExtent.GetY();
+    float wheelBaseY = comOffset;
+    if (type_ == VehicleType::Motorcycle) {
+        comOffset = -halfExtent.GetY();
+        wheelBaseY = -0.9f * halfExtent.GetY();
+    }
     auto shape = OffsetCenterOfMassShapeSettings(Vec3(0, comOffset, 0), new BoxShape(halfExtent)).Create().Get();
 
     BodyCreationSettings bodySettings(
@@ -120,7 +125,7 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
 
             for (size_t i = 0; i < sizeof(zPositions) / sizeof(zPositions[0]); ++i) {
                 auto* w = new WheelSettingsTV;
-                w->mPosition = Vec3(track == 0 ? xLeft : xRight, comOffset, zPositions[i]);
+                w->mPosition = Vec3(track == 0 ? xLeft : xRight, wheelBaseY, zPositions[i]);
                 w->mRadius = wheelRadius;
                 w->mWidth = wheelWidth;
                 w->mSuspensionMinLength = suspensionMinLength;
@@ -136,27 +141,37 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         const float frontWheelPosZ = 0.75f;
         const float backWheelPosZ = -0.75f;
         const float casterAngle = DegreesToRadians(30.0f);
+        const Vec3 wheelUp(0, 1, 0);
+        const Vec3 wheelForward(0, 0, 1);
 
         auto* front = new WheelSettingsWV;
-        front->mPosition = Vec3(0.0f, comOffset, frontWheelPosZ);
+        front->mPosition = Vec3(0.0f, wheelBaseY, frontWheelPosZ);
         front->mMaxSteerAngle = DegreesToRadians(30.0f);
         front->mSuspensionDirection = Vec3(0, -1, Tan(casterAngle)).Normalized();
         front->mSteeringAxis = -front->mSuspensionDirection;
+        front->mWheelUp = wheelUp;
+        front->mWheelForward = wheelForward;
         front->mRadius = wheelRadius;
         front->mWidth = wheelWidth;
         front->mSuspensionMinLength = 0.3f;
         front->mSuspensionMaxLength = 0.5f;
         front->mSuspensionSpring.mFrequency = 1.5f;
+        front->mSuspensionSpring.mDamping = 0.5f;
         front->mMaxBrakeTorque = 500.0f;
 
         auto* back = new WheelSettingsWV;
-        back->mPosition = Vec3(0.0f, comOffset, backWheelPosZ);
+        back->mPosition = Vec3(0.0f, wheelBaseY, backWheelPosZ);
         back->mMaxSteerAngle = 0.0f;
+        back->mSuspensionDirection = Vec3(0, -1, 0);
+        back->mSteeringAxis = Vec3(0, 1, 0);
+        back->mWheelUp = wheelUp;
+        back->mWheelForward = wheelForward;
         back->mRadius = wheelRadius;
         back->mWidth = wheelWidth;
         back->mSuspensionMinLength = 0.3f;
         back->mSuspensionMaxLength = 0.5f;
         back->mSuspensionSpring.mFrequency = 2.0f;
+        back->mSuspensionSpring.mDamping = 0.5f;
         back->mMaxBrakeTorque = 250.0f;
 
         vehicleSettings.mWheels = {front, back};
@@ -186,7 +201,7 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
         for (const auto& wheel : model_.wheels) {
             auto* w = new WheelSettingsWV;
             // Keep wheel center relative to COM so that tire bottom sits near ground.
-            w->mPosition = Vec3(wheel->position.x, comOffset, wheel->position.z);
+            w->mPosition = Vec3(wheel->position.x, wheelBaseY, wheel->position.z);
             w->mSuspensionDirection = suspensionDir;
             w->mSteeringAxis = steeringAxis;
             w->mWheelUp = wheelUp;
@@ -233,7 +248,11 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
     }
 
     vehicleConstraint_ = new VehicleConstraint(*body_, vehicleSettings);
-    collisionTester_ = new VehicleCollisionTesterCastCylinder(PhysicsLayers::Dynamic);
+    if (type_ == VehicleType::Motorcycle) {
+        collisionTester_ = new VehicleCollisionTesterCastCylinder(PhysicsLayers::Dynamic, 0.5f * wheelWidth);
+    } else {
+        collisionTester_ = new VehicleCollisionTesterCastCylinder(PhysicsLayers::Dynamic);
+    }
     vehicleConstraint_->SetVehicleCollisionTester(collisionTester_);
 
     world_.system().AddConstraint(vehicleConstraint_);
@@ -285,17 +304,24 @@ void PhysicsVehicle::applyInput(const VehicleInput& input) {
     if (type_ == VehicleType::Tank) {
         auto* tracked = static_cast<TrackedVehicleController*>(controllerBase_);
         tracked->GetEngine().mMaxTorque = settings_.engineForce;
+
+        const float minVelocityPivotTurn = 1.0f;
         float leftRatio = 1.0f;
         float rightRatio = 1.0f;
-        if (std::abs(throttle) < 0.01f && std::abs(input.steer) > 0.01f) {
-            throttle = 1.0f;
-            leftRatio = input.steer < 0.f ? -1.0f : 1.0f;
-            rightRatio = input.steer < 0.f ? 1.0f : -1.0f;
-        } else if (input.steer < -0.01f) {
-            leftRatio = 0.6f;
-        } else if (input.steer > 0.01f) {
-            rightRatio = 0.6f;
+
+        if (std::abs(input.steer) > 0.01f) {
+            if (brake < 0.01f && std::abs(throttle) < 0.01f && std::abs(forwardSpeed) < minVelocityPivotTurn) {
+                // Pivot turn like Jolt demo
+                throttle = 1.0f;
+                leftRatio = input.steer < 0.f ? -1.0f : 1.0f;
+                rightRatio = input.steer < 0.f ? 1.0f : -1.0f;
+            } else if (input.steer < -0.01f) {
+                leftRatio = 0.6f;
+            } else if (input.steer > 0.01f) {
+                rightRatio = 0.6f;
+            }
         }
+
         tracked->SetDriverInput(throttle, leftRatio, rightRatio, brake);
     } else if (type_ == VehicleType::Motorcycle) {
         auto* motorcycle = static_cast<MotorcycleController*>(controllerBase_);
@@ -344,32 +370,37 @@ VehicleType PhysicsVehicle::type() const {
 float PhysicsVehicle::spawnHeight(VehicleType type) {
     float halfY = 0.3f;
     float wheelRadius = 0.4f;
+    float wheelBaseY = -0.9f * halfY;
     switch (type) {
         case VehicleType::Kart:
             halfY = 0.2f;
             wheelRadius = 0.35f;
+            wheelBaseY = -0.9f * halfY;
             break;
         case VehicleType::Sedan:
             halfY = 0.3f;
             wheelRadius = 0.45f;
+            wheelBaseY = -0.9f * halfY;
             break;
         case VehicleType::Truck:
             halfY = 0.4f;
             wheelRadius = 0.55f;
+            wheelBaseY = -0.9f * halfY;
             break;
         case VehicleType::Tank:
             halfY = 0.5f;
             wheelRadius = 0.3f;
+            wheelBaseY = -0.9f * halfY;
             break;
         case VehicleType::Motorcycle:
             halfY = 0.3f;
             wheelRadius = 0.31f;
+            wheelBaseY = -0.9f * halfY;
             break;
         default:
             break;
     }
-    const float comOffset = -0.9f * halfY;
     const float suspensionRest = 0.4f;
-    return wheelRadius - comOffset + suspensionRest;
+    return wheelRadius - wheelBaseY + suspensionRest;
 }
 

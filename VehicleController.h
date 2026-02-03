@@ -12,6 +12,7 @@ public:
     VehicleInput input() const;
 
     int consumeSwitchRequest();
+    bool consumeResetRequest();
 
     void onKeyPressed(threepp::KeyEvent evt) override;
     void onKeyReleased(threepp::KeyEvent evt) override;
@@ -25,4 +26,5 @@ private:
     bool right_ = false;
     bool brake_ = false;
     int switchRequest_ = -1;
+    bool resetRequest_ = false;
 };
