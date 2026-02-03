@@ -123,6 +123,63 @@ VehicleModel buildTruck() {
     return {group, wheels, steeringWheels};
 }
 
+VehicleModel buildTank() {
+    auto group = Group::create();
+
+    auto body = createBox({3.4f, 1.0f, 6.4f}, {0, 0.0f, 0}, Color::darkgray);
+    auto turret = createBox({2.8f, 0.8f, 4.0f}, {0, 0.9f, 0}, Color::gray);
+    group->add(body);
+    group->add(turret);
+
+    std::vector<std::shared_ptr<Mesh>> wheels;
+    const float r = 0.3f;
+    const float w = 0.1f;
+    const float x = 1.7f;
+    const float zPositions[] = {2.95f, 2.1f, 1.4f, 0.7f, 0.0f, -0.7f, -1.4f, -2.1f, -2.75f};
+
+    for (float z : zPositions) {
+        auto wl = createWheel(r, w, Color::black);
+        wl->position.set(x, r, z);
+        wheels.push_back(wl);
+        group->add(wl);
+    }
+    for (float z : zPositions) {
+        auto wr = createWheel(r, w, Color::black);
+        wr->position.set(-x, r, z);
+        wheels.push_back(wr);
+        group->add(wr);
+    }
+
+    std::vector<std::shared_ptr<Mesh>> steeringWheels;
+    return {group, wheels, steeringWheels};
+}
+
+VehicleModel buildMotorcycle() {
+    auto group = Group::create();
+
+    auto body = createBox({0.5f, 0.6f, 1.6f}, {0, 0.0f, 0}, Color::darkblue);
+    auto seat = createBox({0.4f, 0.4f, 0.6f}, {0, 0.5f, -0.2f}, Color::blue);
+    group->add(body);
+    group->add(seat);
+
+    std::vector<std::shared_ptr<Mesh>> wheels;
+    const float r = 0.31f;
+    const float w = 0.05f;
+    const float zFront = 0.75f;
+    const float zBack = -0.75f;
+
+    auto wFront = createWheel(r, w, Color::black);
+    wFront->position.set(0.f, r, zFront);
+    auto wBack = createWheel(r, w, Color::black);
+    wBack->position.set(0.f, r, zBack);
+
+    wheels = {wFront, wBack};
+    std::vector<std::shared_ptr<Mesh>> steeringWheels = {wFront};
+    for (const auto& wheel : wheels) group->add(wheel);
+
+    return {group, wheels, steeringWheels};
+}
+
 } // namespace
 
 VehicleModel VehicleFactory::create(VehicleType type) {
@@ -133,6 +190,10 @@ VehicleModel VehicleFactory::create(VehicleType type) {
             return createSedan();
         case VehicleType::Truck:
             return createTruck();
+        case VehicleType::Tank:
+            return createTank();
+        case VehicleType::Motorcycle:
+            return createMotorcycle();
         default:
             return createKart();
     }
@@ -148,4 +209,12 @@ VehicleModel VehicleFactory::createSedan() {
 
 VehicleModel VehicleFactory::createTruck() {
     return buildTruck();
+}
+
+VehicleModel VehicleFactory::createTank() {
+    return buildTank();
+}
+
+VehicleModel VehicleFactory::createMotorcycle() {
+    return buildMotorcycle();
 }

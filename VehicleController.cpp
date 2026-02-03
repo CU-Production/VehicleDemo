@@ -76,6 +76,12 @@ void VehicleController::onKeyPressed(KeyEvent evt) {
         case Key::NUM_3:
             switchRequest_ = 2;
             break;
+        case Key::NUM_4:
+            switchRequest_ = 3;
+            break;
+        case Key::NUM_5:
+            switchRequest_ = 4;
+            break;
         case Key::KP_1:
             switchRequest_ = 0;
             break;
@@ -84,6 +90,12 @@ void VehicleController::onKeyPressed(KeyEvent evt) {
             break;
         case Key::KP_3:
             switchRequest_ = 2;
+            break;
+        case Key::KP_4:
+            switchRequest_ = 3;
+            break;
+        case Key::KP_5:
+            switchRequest_ = 4;
             break;
         default:
             break;

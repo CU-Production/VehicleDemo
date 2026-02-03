@@ -6,7 +6,9 @@
 enum class VehicleType {
     Kart,
     Sedan,
-    Truck
+    Truck,
+    Tank,
+    Motorcycle
 };
 
 struct VehicleModel {
@@ -21,4 +23,6 @@ public:
     static VehicleModel createKart();
     static VehicleModel createSedan();
     static VehicleModel createTruck();
+    static VehicleModel createTank();
+    static VehicleModel createMotorcycle();
 };

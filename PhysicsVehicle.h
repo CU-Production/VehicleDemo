@@ -6,6 +6,7 @@
 #include <Jolt/Core/Reference.h>
 #include <Jolt/Physics/Vehicle/VehicleConstraint.h>
 #include <Jolt/Physics/Vehicle/VehicleCollisionTester.h>
+#include <Jolt/Physics/Vehicle/VehicleController.h>
 #include <Jolt/Physics/Vehicle/WheeledVehicleController.h>
 
 struct VehicleInput {
@@ -47,6 +48,7 @@ private:
     JPH::Body* body_ = nullptr;
     JPH::Ref<JPH::VehicleConstraint> vehicleConstraint_;
     JPH::Ref<JPH::VehicleCollisionTester> collisionTester_;
+    JPH::VehicleController* controllerBase_ = nullptr;
     JPH::WheeledVehicleController* controller_ = nullptr;
     std::vector<JPH::Vec3> wheelRights_;
 };

@@ -73,21 +73,31 @@ TestScene createTestScene(Canvas& canvas) {
     bodyInterface.CreateAndAddBody(groundSettings, JPH::EActivation::DontActivate);
 
     auto kart = VehicleFactory::create(VehicleType::Kart);
-    kart.group->position.set(-6, 0, 0);
+    kart.group->position.set(-12, 0, 0);
     testScene.scene->add(kart.group);
 
     auto sedan = VehicleFactory::create(VehicleType::Sedan);
-    sedan.group->position.set(0, 0, 0);
+    sedan.group->position.set(-6, 0, 0);
     testScene.scene->add(sedan.group);
 
     auto truck = VehicleFactory::create(VehicleType::Truck);
-    truck.group->position.set(7, 0, 0);
+    truck.group->position.set(2, 0, 0);
     testScene.scene->add(truck.group);
 
-    testScene.vehicles = {kart, sedan, truck};
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[0], VehicleType::Kart, JPH::RVec3(-6, PhysicsVehicle::spawnHeight(VehicleType::Kart), 0)));
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[1], VehicleType::Sedan, JPH::RVec3(0, PhysicsVehicle::spawnHeight(VehicleType::Sedan), 0)));
-    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[2], VehicleType::Truck, JPH::RVec3(7, PhysicsVehicle::spawnHeight(VehicleType::Truck), 0)));
+    auto tank = VehicleFactory::create(VehicleType::Tank);
+    tank.group->position.set(10, 0, 0);
+    testScene.scene->add(tank.group);
+
+    auto motorcycle = VehicleFactory::create(VehicleType::Motorcycle);
+    motorcycle.group->position.set(16, 0, 0);
+    testScene.scene->add(motorcycle.group);
+
+    testScene.vehicles = {kart, sedan, truck, tank, motorcycle};
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[0], VehicleType::Kart, JPH::RVec3(-12, PhysicsVehicle::spawnHeight(VehicleType::Kart), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[1], VehicleType::Sedan, JPH::RVec3(-6, PhysicsVehicle::spawnHeight(VehicleType::Sedan), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[2], VehicleType::Truck, JPH::RVec3(2, PhysicsVehicle::spawnHeight(VehicleType::Truck), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[3], VehicleType::Tank, JPH::RVec3(10, PhysicsVehicle::spawnHeight(VehicleType::Tank), 0)));
+    testScene.physicsVehicles.emplace_back(std::make_unique<PhysicsVehicle>(*testScene.physics, testScene.vehicles[4], VehicleType::Motorcycle, JPH::RVec3(16, PhysicsVehicle::spawnHeight(VehicleType::Motorcycle), 0)));
 
 #ifdef JPH_DEBUG_RENDERER
     testScene.debugRenderer = std::make_unique<JoltDebugRenderer>();
@@ -143,7 +153,7 @@ void TestScene::update(float dt) {
 void TestScene::drawUi() {
     ImGui::Begin("Vehicle Debug");
     ImGui::Text("Controls: W/S throttle, A/D steer, Space brake");
-    ImGui::Text("Switch vehicle: 1/2/3");
+    ImGui::Text("Switch vehicle: 1/2/3/4/5");
 
     if (!physicsVehicles.empty()) {
         ImGui::Separator();

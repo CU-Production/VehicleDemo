@@ -4,9 +4,14 @@
 #include <Jolt/Physics/Body/BodyInterface.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.h>
+#include <Jolt/Physics/Vehicle/MotorcycleController.h>
+#include <Jolt/Physics/Vehicle/TrackedVehicleController.h>
 #include <Jolt/Physics/Vehicle/VehicleConstraint.h>
 #include <Jolt/Physics/Vehicle/VehicleCollisionTester.h>
 #include <Jolt/Physics/Vehicle/WheeledVehicleController.h>
+
+#include <algorithm>
+#include <cmath>
 
 using namespace JPH;
 
@@ -47,6 +52,26 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
             settings_.maxSpeed = 18.f;
             settings_.steerTorque = 1400.f;
             break;
+        case VehicleType::Tank:
+            // Match visual body size: 3.4 x 1.0 x 6.4
+            halfExtent = Vec3(1.7f, 0.5f, 3.2f);
+            wheelRadius = 0.3f;
+            wheelWidth = 0.1f;
+            settings_.mass = 4000.f;
+            settings_.engineForce = 15000.f;
+            settings_.maxSpeed = 14.f;
+            settings_.steerTorque = 0.f;
+            break;
+        case VehicleType::Motorcycle:
+            // Match visual body size: 0.5 x 0.6 x 1.6
+            halfExtent = Vec3(0.25f, 0.3f, 0.8f);
+            wheelRadius = 0.31f;
+            wheelWidth = 0.05f;
+            settings_.mass = 240.f;
+            settings_.engineForce = 3500.f;
+            settings_.maxSpeed = 28.f;
+            settings_.steerTorque = 1000.f;
+            break;
         default:
             break;
     }
@@ -77,59 +102,134 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
     vehicleSettings.mWheels.reserve(model_.wheels.size());
     wheelRights_.reserve(model_.wheels.size());
 
-    Vec3 suspensionDir(0, -1, 0);
-    Vec3 steeringAxis(0, 1, 0);
-    Vec3 wheelUp(0, 1, 0);
-    Vec3 wheelForward(0, 0, 1);
+    if (type_ == VehicleType::Tank) {
+        auto* controllerSettings = new TrackedVehicleControllerSettings;
+        vehicleSettings.mController = controllerSettings;
 
-    for (const auto& wheel : model_.wheels) {
-        auto* w = new WheelSettingsWV;
-        // Keep wheel center relative to COM so that tire bottom sits near ground.
-        w->mPosition = Vec3(wheel->position.x, comOffset, wheel->position.z);
-        w->mSuspensionDirection = suspensionDir;
-        w->mSteeringAxis = steeringAxis;
-        w->mWheelUp = wheelUp;
-        w->mWheelForward = wheelForward;
-        // Match Jolt demo suspension range.
-        w->mSuspensionMinLength = 0.3f;
-        w->mSuspensionMaxLength = 0.5f;
-        w->mSuspensionSpring.mFrequency = 1.5f;
-        w->mSuspensionSpring.mDamping = 0.5f;
-        w->mRadius = wheelRadius;
-        w->mWidth = wheelWidth;
-        w->mMaxSteerAngle = (wheel->position.z > 0) ? (JPH_PI / 6.f) : 0.f;
-        w->mMaxBrakeTorque = settings_.brakeForce;
-        w->mMaxHandBrakeTorque = (wheel->position.z > 0) ? 0.f : (settings_.brakeForce * 2.0f);
+        const float suspensionMinLength = 0.3f;
+        const float suspensionMaxLength = 0.5f;
+        const float suspensionFrequency = 1.0f;
 
-        vehicleSettings.mWheels.push_back(w);
+        const float xLeft = halfExtent.GetX();
+        const float xRight = -halfExtent.GetX();
+        const float zPositions[] = {2.95f, 2.1f, 1.4f, 0.7f, 0.0f, -0.7f, -1.4f, -2.1f, -2.75f};
 
-        Vec3 wheelRight = Vec3::sAxisY();
-        wheelRights_.push_back(wheelRight);
-    }
+        for (int track = 0; track < 2; ++track) {
+            VehicleTrackSettings& trackSettings = controllerSettings->mTracks[track];
+            trackSettings.mDrivenWheel = static_cast<uint>(vehicleSettings.mWheels.size() + (sizeof(zPositions) / sizeof(zPositions[0])) - 1);
 
-    auto* controllerSettings = new WheeledVehicleControllerSettings;
-    vehicleSettings.mController = controllerSettings;
+            for (size_t i = 0; i < sizeof(zPositions) / sizeof(zPositions[0]); ++i) {
+                auto* w = new WheelSettingsTV;
+                w->mPosition = Vec3(track == 0 ? xLeft : xRight, comOffset, zPositions[i]);
+                w->mRadius = wheelRadius;
+                w->mWidth = wheelWidth;
+                w->mSuspensionMinLength = suspensionMinLength;
+                w->mSuspensionMaxLength = (i == 0 || i == (sizeof(zPositions) / sizeof(zPositions[0]) - 1)) ? suspensionMinLength : suspensionMaxLength;
+                w->mSuspensionSpring.mFrequency = suspensionFrequency;
 
-    controllerSettings->mDifferentials.clear();
-    if (vehicleSettings.mWheels.size() >= 2) {
+                trackSettings.mWheels.push_back(static_cast<uint>(vehicleSettings.mWheels.size()));
+                vehicleSettings.mWheels.push_back(w);
+                wheelRights_.push_back(Vec3::sAxisY());
+            }
+        }
+    } else if (type_ == VehicleType::Motorcycle) {
+        const float frontWheelPosZ = 0.75f;
+        const float backWheelPosZ = -0.75f;
+        const float casterAngle = DegreesToRadians(30.0f);
+
+        auto* front = new WheelSettingsWV;
+        front->mPosition = Vec3(0.0f, comOffset, frontWheelPosZ);
+        front->mMaxSteerAngle = DegreesToRadians(30.0f);
+        front->mSuspensionDirection = Vec3(0, -1, Tan(casterAngle)).Normalized();
+        front->mSteeringAxis = -front->mSuspensionDirection;
+        front->mRadius = wheelRadius;
+        front->mWidth = wheelWidth;
+        front->mSuspensionMinLength = 0.3f;
+        front->mSuspensionMaxLength = 0.5f;
+        front->mSuspensionSpring.mFrequency = 1.5f;
+        front->mMaxBrakeTorque = 500.0f;
+
+        auto* back = new WheelSettingsWV;
+        back->mPosition = Vec3(0.0f, comOffset, backWheelPosZ);
+        back->mMaxSteerAngle = 0.0f;
+        back->mRadius = wheelRadius;
+        back->mWidth = wheelWidth;
+        back->mSuspensionMinLength = 0.3f;
+        back->mSuspensionMaxLength = 0.5f;
+        back->mSuspensionSpring.mFrequency = 2.0f;
+        back->mMaxBrakeTorque = 250.0f;
+
+        vehicleSettings.mWheels = {front, back};
+        wheelRights_.push_back(Vec3::sAxisY());
+        wheelRights_.push_back(Vec3::sAxisY());
+
+        auto* controllerSettings = new MotorcycleControllerSettings;
+        controllerSettings->mEngine.mMaxTorque = 150.0f;
+        controllerSettings->mEngine.mMinRPM = 1000.0f;
+        controllerSettings->mEngine.mMaxRPM = 10000.0f;
+        controllerSettings->mTransmission.mShiftDownRPM = 2000.0f;
+        controllerSettings->mTransmission.mShiftUpRPM = 8000.0f;
+        controllerSettings->mTransmission.mGearRatios = {2.27f, 1.63f, 1.3f, 1.09f, 0.96f, 0.88f};
+        controllerSettings->mTransmission.mReverseGearRatios = {-4.0f};
+        controllerSettings->mTransmission.mClutchStrength = 2.0f;
         controllerSettings->mDifferentials.resize(1);
-        controllerSettings->mDifferentials[0].mLeftWheel = 0;
+        controllerSettings->mDifferentials[0].mLeftWheel = -1;
         controllerSettings->mDifferentials[0].mRightWheel = 1;
-    }
-    if (vehicleSettings.mWheels.size() >= 4) {
-        controllerSettings->mDifferentials.resize(2);
-        controllerSettings->mDifferentials[1].mLeftWheel = 2;
-        controllerSettings->mDifferentials[1].mRightWheel = 3;
-        controllerSettings->mDifferentials[0].mEngineTorqueRatio = 0.5f;
-        controllerSettings->mDifferentials[1].mEngineTorqueRatio = 0.5f;
-    }
-    if (vehicleSettings.mWheels.size() >= 6) {
-        controllerSettings->mDifferentials.resize(3);
-        controllerSettings->mDifferentials[2].mLeftWheel = 4;
-        controllerSettings->mDifferentials[2].mRightWheel = 5;
-        controllerSettings->mDifferentials[0].mEngineTorqueRatio = 1.f / 3.f;
-        controllerSettings->mDifferentials[1].mEngineTorqueRatio = 1.f / 3.f;
-        controllerSettings->mDifferentials[2].mEngineTorqueRatio = 1.f / 3.f;
+        controllerSettings->mDifferentials[0].mDifferentialRatio = 1.93f * 40.0f / 16.0f;
+        vehicleSettings.mController = controllerSettings;
+    } else {
+        Vec3 suspensionDir(0, -1, 0);
+        Vec3 steeringAxis(0, 1, 0);
+        Vec3 wheelUp(0, 1, 0);
+        Vec3 wheelForward(0, 0, 1);
+
+        for (const auto& wheel : model_.wheels) {
+            auto* w = new WheelSettingsWV;
+            // Keep wheel center relative to COM so that tire bottom sits near ground.
+            w->mPosition = Vec3(wheel->position.x, comOffset, wheel->position.z);
+            w->mSuspensionDirection = suspensionDir;
+            w->mSteeringAxis = steeringAxis;
+            w->mWheelUp = wheelUp;
+            w->mWheelForward = wheelForward;
+            // Match Jolt demo suspension range.
+            w->mSuspensionMinLength = 0.3f;
+            w->mSuspensionMaxLength = 0.5f;
+            w->mSuspensionSpring.mFrequency = 1.5f;
+            w->mSuspensionSpring.mDamping = 0.5f;
+            w->mRadius = wheelRadius;
+            w->mWidth = wheelWidth;
+            w->mMaxSteerAngle = (wheel->position.z > 0) ? (JPH_PI / 6.f) : 0.f;
+            w->mMaxBrakeTorque = settings_.brakeForce;
+            w->mMaxHandBrakeTorque = (wheel->position.z > 0) ? 0.f : (settings_.brakeForce * 2.0f);
+
+            vehicleSettings.mWheels.push_back(w);
+            wheelRights_.push_back(Vec3::sAxisY());
+        }
+
+        auto* controllerSettings = new WheeledVehicleControllerSettings;
+        vehicleSettings.mController = controllerSettings;
+
+        controllerSettings->mDifferentials.clear();
+        if (vehicleSettings.mWheels.size() >= 2) {
+            controllerSettings->mDifferentials.resize(1);
+            controllerSettings->mDifferentials[0].mLeftWheel = 0;
+            controllerSettings->mDifferentials[0].mRightWheel = 1;
+        }
+        if (vehicleSettings.mWheels.size() >= 4) {
+            controllerSettings->mDifferentials.resize(2);
+            controllerSettings->mDifferentials[1].mLeftWheel = 2;
+            controllerSettings->mDifferentials[1].mRightWheel = 3;
+            controllerSettings->mDifferentials[0].mEngineTorqueRatio = 0.5f;
+            controllerSettings->mDifferentials[1].mEngineTorqueRatio = 0.5f;
+        }
+        if (vehicleSettings.mWheels.size() >= 6) {
+            controllerSettings->mDifferentials.resize(3);
+            controllerSettings->mDifferentials[2].mLeftWheel = 4;
+            controllerSettings->mDifferentials[2].mRightWheel = 5;
+            controllerSettings->mDifferentials[0].mEngineTorqueRatio = 1.f / 3.f;
+            controllerSettings->mDifferentials[1].mEngineTorqueRatio = 1.f / 3.f;
+            controllerSettings->mDifferentials[2].mEngineTorqueRatio = 1.f / 3.f;
+        }
     }
 
     vehicleConstraint_ = new VehicleConstraint(*body_, vehicleSettings);
@@ -138,7 +238,10 @@ PhysicsVehicle::PhysicsVehicle(PhysicsWorld& world, VehicleModel& model, Vehicle
 
     world_.system().AddConstraint(vehicleConstraint_);
     world_.system().AddStepListener(vehicleConstraint_);
-    controller_ = static_cast<WheeledVehicleController*>(vehicleConstraint_->GetController());
+    controllerBase_ = vehicleConstraint_->GetController();
+    if (type_ != VehicleType::Tank && type_ != VehicleType::Motorcycle) {
+        controller_ = static_cast<WheeledVehicleController*>(controllerBase_);
+    }
 }
 
 PhysicsVehicle::~PhysicsVehicle() {
@@ -156,7 +259,7 @@ PhysicsVehicle::~PhysicsVehicle() {
 }
 
 void PhysicsVehicle::applyInput(const VehicleInput& input) {
-    if (!controller_) return;
+    if (!controllerBase_) return;
 
     BodyInterface& bodyInterface = world_.bodyInterface();
     bodyInterface.ActivateBody(bodyId_);
@@ -179,8 +282,30 @@ void PhysicsVehicle::applyInput(const VehicleInput& input) {
         brake = std::max(brake, 0.3f);
     }
 
-    controller_->GetEngine().mMaxTorque = settings_.engineForce;
-    controller_->SetDriverInput(throttle, input.steer, brake, input.handbrake ? 1.f : 0.f);
+    if (type_ == VehicleType::Tank) {
+        auto* tracked = static_cast<TrackedVehicleController*>(controllerBase_);
+        tracked->GetEngine().mMaxTorque = settings_.engineForce;
+        float leftRatio = 1.0f;
+        float rightRatio = 1.0f;
+        if (std::abs(throttle) < 0.01f && std::abs(input.steer) > 0.01f) {
+            throttle = 1.0f;
+            leftRatio = input.steer < 0.f ? -1.0f : 1.0f;
+            rightRatio = input.steer < 0.f ? 1.0f : -1.0f;
+        } else if (input.steer < -0.01f) {
+            leftRatio = 0.6f;
+        } else if (input.steer > 0.01f) {
+            rightRatio = 0.6f;
+        }
+        tracked->SetDriverInput(throttle, leftRatio, rightRatio, brake);
+    } else if (type_ == VehicleType::Motorcycle) {
+        auto* motorcycle = static_cast<MotorcycleController*>(controllerBase_);
+        motorcycle->GetEngine().mMaxTorque = settings_.engineForce;
+        motorcycle->SetDriverInput(throttle, input.steer, brake, input.handbrake);
+        motorcycle->EnableLeanController(true);
+    } else if (controller_) {
+        controller_->GetEngine().mMaxTorque = settings_.engineForce;
+        controller_->SetDriverInput(throttle, input.steer, brake, input.handbrake ? 1.f : 0.f);
+    }
 }
 
 void PhysicsVehicle::syncVisual() {
@@ -231,6 +356,14 @@ float PhysicsVehicle::spawnHeight(VehicleType type) {
         case VehicleType::Truck:
             halfY = 0.4f;
             wheelRadius = 0.55f;
+            break;
+        case VehicleType::Tank:
+            halfY = 0.5f;
+            wheelRadius = 0.3f;
+            break;
+        case VehicleType::Motorcycle:
+            halfY = 0.3f;
+            wheelRadius = 0.31f;
             break;
         default:
             break;
