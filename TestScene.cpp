@@ -125,6 +125,9 @@ void TestScene::update(float dt) {
         resetSimulation();
         return;
     }
+    if (controller.consumeCameraToggleRequest()) {
+        toggleCameraMode();
+    }
 
     VehicleInput input = controller.input();
     for (size_t i = 0; i < physicsVehicles.size(); ++i) {
@@ -139,6 +142,21 @@ void TestScene::update(float dt) {
 
     for (auto& vehicle : physicsVehicles) {
         vehicle->syncVisual();
+    }
+
+    if (cameraMode == CameraMode::ThirdPerson && !vehicles.empty()) {
+        const auto& target = vehicles[activeVehicle];
+        if (target.group) {
+            Vector3 forward = Vector3(0, 0, 1);
+            forward.applyQuaternion(target.group->quaternion);
+            Vector3 desired = target.group->position + forward * (-thirdPersonDistance);
+            desired.y += thirdPersonHeight;
+            camera->position.copy(desired);
+
+            Vector3 lookAt = target.group->position;
+            lookAt.y += thirdPersonLookAtHeight;
+            camera->lookAt(lookAt);
+        }
     }
 
 #ifdef JPH_DEBUG_RENDERER
@@ -166,6 +184,7 @@ void TestScene::drawUi() {
     ImGui::Text("Controls: W/S throttle, A/D steer, Space brake");
     ImGui::Text("Switch vehicle: 1/2/3/4/5");
     ImGui::Text("Reset: R");
+    ImGui::Text("Camera toggle: C");
 
     if (!physicsVehicles.empty()) {
         ImGui::Separator();
@@ -183,6 +202,18 @@ void TestScene::drawUi() {
     if (ImGui::Button("Reset Scene")) {
         resetSimulation();
     }
+    }
+
+    ImGui::Separator();
+    const char* modeLabel = cameraMode == CameraMode::Orbit ? "Orbit" : "Third Person";
+    ImGui::Text("Camera mode: %s", modeLabel);
+    if (ImGui::Button("Toggle Camera")) {
+        toggleCameraMode();
+    }
+    if (cameraMode == CameraMode::ThirdPerson) {
+        ImGui::SliderFloat("TP Distance", &thirdPersonDistance, 3.f, 20.f);
+        ImGui::SliderFloat("TP Height", &thirdPersonHeight, 1.f, 8.f);
+        ImGui::SliderFloat("TP Look Height", &thirdPersonLookAtHeight, 0.5f, 4.f);
     }
 
 #ifdef JPH_DEBUG_RENDERER
@@ -205,6 +236,22 @@ void TestScene::resetSimulation() {
     physics = std::make_unique<PhysicsWorld>();
     createGroundBody(*physics);
     setupVehicles(*this);
+}
+
+void TestScene::toggleCameraMode() {
+    if (cameraMode == CameraMode::Orbit) {
+        cameraMode = CameraMode::ThirdPerson;
+        if (controls) {
+            controls->enabled = false;
+        }
+    } else {
+        cameraMode = CameraMode::Orbit;
+        if (controls) {
+            controls->enabled = true;
+            controls->target.set(0, 1, 0);
+            controls->update();
+        }
+    }
 }
 
 void TestScene::onResize(WindowSize size, GLRenderer& renderer) {

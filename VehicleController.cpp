@@ -52,6 +52,12 @@ bool VehicleController::consumeResetRequest() {
     return request;
 }
 
+bool VehicleController::consumeCameraToggleRequest() {
+    bool request = cameraToggleRequest_;
+    cameraToggleRequest_ = false;
+    return request;
+}
+
 void VehicleController::onKeyPressed(KeyEvent evt) {
     switch (evt.key) {
         case Key::W:
@@ -105,6 +111,9 @@ void VehicleController::onKeyPressed(KeyEvent evt) {
             break;
         case Key::R:
             resetRequest_ = true;
+            break;
+        case Key::C:
+            cameraToggleRequest_ = true;
             break;
         default:
             break;

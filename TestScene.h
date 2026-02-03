@@ -17,6 +17,15 @@ struct TestScene {
     std::vector<std::unique_ptr<PhysicsVehicle>> physicsVehicles;
     VehicleController controller;
     int activeVehicle = 0;
+
+    enum class CameraMode {
+        Orbit,
+        ThirdPerson
+    };
+    CameraMode cameraMode = CameraMode::Orbit;
+    float thirdPersonDistance = 8.f;
+    float thirdPersonHeight = 3.f;
+    float thirdPersonLookAtHeight = 1.2f;
 #ifdef JPH_DEBUG_RENDERER
     std::unique_ptr<JoltDebugRenderer> debugRenderer;
     bool showDebugDraw = false;
@@ -26,6 +35,7 @@ struct TestScene {
     void drawUi();
     void onResize(threepp::WindowSize size, threepp::GLRenderer& renderer);
     void resetSimulation();
+    void toggleCameraMode();
 };
 
 TestScene createTestScene(threepp::Canvas& canvas);

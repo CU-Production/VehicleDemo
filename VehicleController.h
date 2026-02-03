@@ -13,6 +13,7 @@ public:
 
     int consumeSwitchRequest();
     bool consumeResetRequest();
+    bool consumeCameraToggleRequest();
 
     void onKeyPressed(threepp::KeyEvent evt) override;
     void onKeyReleased(threepp::KeyEvent evt) override;
@@ -27,4 +28,5 @@ private:
     bool brake_ = false;
     int switchRequest_ = -1;
     bool resetRequest_ = false;
+    bool cameraToggleRequest_ = false;
 };
