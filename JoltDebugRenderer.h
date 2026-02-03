@@ -5,6 +5,8 @@
 #ifdef JPH_DEBUG_RENDERER
 #include <Jolt/Jolt.h>
 #include <Jolt/Renderer/DebugRendererSimple.h>
+#include <atomic>
+#include <thread>
 
 class JoltDebugRenderer final : public JPH::DebugRendererSimple {
 public:
@@ -21,6 +23,11 @@ public:
     std::shared_ptr<threepp::Group> group() const { return group_; }
 
 private:
+    struct ThreadBuffer {
+        std::vector<float> positions;
+        std::vector<float> colors;
+    };
+
     std::shared_ptr<threepp::Group> group_;
     std::shared_ptr<threepp::BufferGeometry> lineGeometry_;
     std::shared_ptr<threepp::LineBasicMaterial> lineMaterial_;
@@ -30,5 +37,7 @@ private:
     std::vector<float> linePositions_;
     std::vector<float> lineColors_;
     size_t maxVertices_ = 0;
+    std::vector<ThreadBuffer> threadBuffers_;
+    std::atomic<size_t> nextThreadIndex_{0};
 };
 #endif
