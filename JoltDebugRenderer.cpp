@@ -11,6 +11,14 @@ JoltDebugRenderer::JoltDebugRenderer() {
     lineGeometry_ = BufferGeometry::create();
     lineMaterial_ = LineBasicMaterial::create();
     lineMaterial_->vertexColors = true;
+
+    maxVertices_ = 4096;
+    positionAttr_ = FloatBufferAttribute::create(std::vector<float>(maxVertices_ * 3, 0.f), 3);
+    positionAttr_->setUsage(DrawUsage::Dynamic);
+    colorAttr_ = FloatBufferAttribute::create(std::vector<float>(maxVertices_ * 3, 0.f), 3);
+    colorAttr_->setUsage(DrawUsage::Dynamic);
+    lineGeometry_->setAttribute("position", positionAttr_);
+    lineGeometry_->setAttribute("color", colorAttr_);
     lineSegments_ = LineSegments::create(lineGeometry_, lineMaterial_);
     lineSegments_->frustumCulled = false;
     group_->add(lineSegments_);
@@ -47,9 +55,25 @@ void JoltDebugRenderer::EndFrame() {
     }
 
     lineSegments_->visible = true;
-    lineGeometry_->setAttribute("position", FloatBufferAttribute::create(linePositions_, 3));
-    lineGeometry_->setAttribute("color", FloatBufferAttribute::create(lineColors_, 3));
-    lineGeometry_->setDrawRange(0, static_cast<int>(linePositions_.size() / 3));
+    const size_t vertexCount = linePositions_.size() / 3;
+    if (vertexCount > maxVertices_) {
+        maxVertices_ = std::max(vertexCount, maxVertices_ * 2);
+        positionAttr_ = FloatBufferAttribute::create(std::vector<float>(maxVertices_ * 3, 0.f), 3);
+        positionAttr_->setUsage(DrawUsage::Dynamic);
+        colorAttr_ = FloatBufferAttribute::create(std::vector<float>(maxVertices_ * 3, 0.f), 3);
+        colorAttr_->setUsage(DrawUsage::Dynamic);
+        lineGeometry_->setAttribute("position", positionAttr_);
+        lineGeometry_->setAttribute("color", colorAttr_);
+    }
+
+    auto& posArray = positionAttr_->array();
+    auto& colArray = colorAttr_->array();
+    std::copy(linePositions_.begin(), linePositions_.end(), posArray.begin());
+    std::copy(lineColors_.begin(), lineColors_.end(), colArray.begin());
+    positionAttr_->needsUpdate();
+    colorAttr_->needsUpdate();
+
+    lineGeometry_->setDrawRange(0, static_cast<int>(vertexCount));
 }
 
 #endif

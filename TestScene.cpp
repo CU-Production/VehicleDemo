@@ -127,7 +127,7 @@ void TestScene::update(float dt) {
 
         JPH::BodyManager::DrawSettings settings;
         settings.mDrawShape = true;
-        settings.mDrawShapeColor = JPH::BodyManager::EShapeColor::InstanceColor;
+        settings.mDrawShapeColor = JPH::BodyManager::EShapeColor::ShapeTypeColor;
         settings.mDrawCenterOfMassTransform = true;
         settings.mDrawBoundingBox = false;
         settings.mDrawWorldTransform = false;

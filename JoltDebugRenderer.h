@@ -25,7 +25,10 @@ private:
     std::shared_ptr<threepp::BufferGeometry> lineGeometry_;
     std::shared_ptr<threepp::LineBasicMaterial> lineMaterial_;
     std::shared_ptr<threepp::LineSegments> lineSegments_;
+    std::shared_ptr<threepp::FloatBufferAttribute> positionAttr_;
+    std::shared_ptr<threepp::FloatBufferAttribute> colorAttr_;
     std::vector<float> linePositions_;
     std::vector<float> lineColors_;
+    size_t maxVertices_ = 0;
 };
 #endif
